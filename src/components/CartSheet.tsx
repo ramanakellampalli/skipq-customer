@@ -16,9 +16,10 @@ interface Props {
   onClose: () => void;
   onOrderPlaced: (orderId: string) => void;
   vendorId: string;
+  gstRegistered: boolean;
 }
 
-export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }: Props) {
+export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, gstRegistered }: Props) {
   const items = useCartStore(state => state.items);
   const incrementItem = useCartStore(state => state.incrementItem);
   const decrementItem = useCartStore(state => state.decrementItem);
@@ -30,9 +31,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
   const [feeOpen, setFeeOpen] = useState(false);
   const setActiveOrder = useStudentStore(state => state.setActiveOrder);
 
-  // TODO: replace with vendor flags from backend when integrated
-  const gstRegistered = true;
-  const igstApplicable = false;
+  const igstApplicable = false; // TODO: derive from vendor/customer state mismatch
 
   // Tax breakdown — GST splits into CGST 2.5% + SGST 2.5% (intra-state)
   const cgst = gstRegistered ? total * 0.025 : 0;

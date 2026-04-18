@@ -141,12 +141,9 @@ export default function OrderTrackingScreen({ route }: any) {
           <Text style={styles.receiptTitle}>Order Summary</Text>
           <View style={styles.receiptRow}>
             <Text style={styles.receiptLabel}>Subtotal</Text>
-            <Text style={styles.receiptValue}>₹{(order.subtotal ?? order.totalAmount).toFixed(2)}</Text>
+            <Text style={styles.receiptValue}>₹{order.subtotal.toFixed(2)}</Text>
           </View>
-          <View style={styles.receiptRow}>
-            <Text style={styles.receiptLabel}>Service fee</Text>
-            <Text style={styles.receiptValue}>₹{(order.markupAmount ?? order.totalAmount * 0.05).toFixed(2)}</Text>
-          </View>
+
           {order.taxAmount > 0 && (
             <>
               <View style={styles.receiptRow}>
@@ -157,8 +154,24 @@ export default function OrderTrackingScreen({ route }: any) {
                 <Text style={styles.receiptLabel}>SGST (2.5%)</Text>
                 <Text style={styles.receiptValue}>₹{order.sgst.toFixed(2)}</Text>
               </View>
+              {order.igst > 0 && (
+                <View style={styles.receiptRow}>
+                  <Text style={styles.receiptLabel}>IGST (5%)</Text>
+                  <Text style={styles.receiptValue}>₹{order.igst.toFixed(2)}</Text>
+                </View>
+              )}
             </>
           )}
+
+          <View style={styles.receiptRow}>
+            <Text style={styles.receiptLabel}>Payment terminal (2%)</Text>
+            <Text style={styles.receiptValue}>₹{order.paymentTerminalFee.toFixed(2)}</Text>
+          </View>
+          <View style={styles.receiptRow}>
+            <Text style={styles.receiptLabel}>Platform fee (3%)</Text>
+            <Text style={styles.receiptValue}>₹{order.platformFee.toFixed(2)}</Text>
+          </View>
+
           <View style={styles.receiptDivider} />
           <View style={styles.receiptRow}>
             <Text style={styles.receiptTotal}>Total</Text>

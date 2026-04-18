@@ -224,6 +224,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
           navigation.navigate('Orders', { screen: 'OrderTracking', params: { orderId } });
         }}
         vendorId={vendor.id}
+        gstRegistered={vendor.gstRegistered ?? false}
       />
     </View>
   );

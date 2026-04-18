@@ -11,6 +11,7 @@ export interface Vendor {
   name: string;
   isOpen: boolean;
   prepTime: number;
+  gstRegistered: boolean;
 }
 
 export interface MenuItem {
@@ -37,10 +38,13 @@ export interface Order {
   paymentStatus: 'PENDING' | 'PAID' | 'REFUNDED';
   items: OrderItem[];
   subtotal: number;
-  markupAmount: number;
   cgst: number;
   sgst: number;
+  igst: number;
   taxAmount: number;
+  platformFee: number;
+  paymentTerminalFee: number;
+  totalServiceFee: number;
   totalAmount: number;
   estimatedReadyAt: string;
   createdAt: string;
