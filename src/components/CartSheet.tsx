@@ -98,7 +98,9 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
           <View style={styles.emptyCart}>
             <Text style={styles.emptyText}>Your cart is empty</Text>
           </View>
-        ) : (
+        ) : null}
+
+        {items.length > 0 && (
           <>
             <FlatList
               data={items}
@@ -180,6 +182,7 @@ const styles = StyleSheet.create({
   },
   emptyCart: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontFamily: font.regular, fontSize: 15, color: colors.textSecondary },
+  body: { flex: 1 },
   itemList: { flex: 1 },
   row: {
     flexDirection: 'row',
