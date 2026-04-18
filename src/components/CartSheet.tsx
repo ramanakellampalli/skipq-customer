@@ -8,6 +8,7 @@ import { api } from '../api';
 import { useCartStore } from '../store/cartStore';
 import { colors, font, radius, spacing } from '../theme';
 import { CartItem } from '../types';
+import OrderSuccessOverlay from './OrderSuccessOverlay';
 
 interface Props {
   visible: boolean;
@@ -23,6 +24,8 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
   const total = useCartStore(state => state.total());
   const clear = useCartStore(state => state.clear);
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
 
   const handlePlaceOrder = async () => {
     if (items.length === 0) return;
@@ -33,7 +36,8 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
         items.map(i => ({ menuItemId: i.menuItemId, quantity: i.quantity })),
       );
       clear();
-      onOrderPlaced(data.id);
+      setPendingOrderId(data.id);
+      setShowSuccess(true);
     } catch (err: any) {
       Alert.alert('Order Failed', err.response?.data?.message || 'Could not place order. Try again.');
     } finally {
@@ -60,7 +64,14 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
   );
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal visible={visible || showSuccess} animationType="slide" transparent onRequestClose={onClose}>
+      <OrderSuccessOverlay
+        visible={showSuccess}
+        onDone={() => {
+          setShowSuccess(false);
+          if (pendingOrderId) onOrderPlaced(pendingOrderId);
+        }}
+      />
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
       <View style={styles.sheet}>
         <View style={styles.handle} />
