@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, StyleSheet, Modal,
   FlatList, Alert, ActivityIndicator, SafeAreaView,
 } from 'react-native';
-import { X, Minus, Plus, ShoppingBag } from 'lucide-react-native';
+import { X, Minus, Plus, ShoppingBag, ChevronDown, ChevronUp } from 'lucide-react-native';
 import { api } from '../api';
 import { useCartStore } from '../store/cartStore';
 import { useStudentStore } from '../store/studentStore';
@@ -27,15 +27,24 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const [feeOpen, setFeeOpen] = useState(false);
   const setActiveOrder = useStudentStore(state => state.setActiveOrder);
 
-  // TODO: replace with vendor.gstRegistered from backend when integrated
+  // TODO: replace with vendor flags from backend when integrated
   const gstRegistered = false;
+  const igstApplicable = false;
 
-  const platformFee = total * 0.05;
-  const cgst = gstRegistered ? total * 0.025 : 0;
-  const sgst = gstRegistered ? total * 0.025 : 0;
-  const grandTotal = total + platformFee + cgst + sgst;
+  // Tax breakdown
+  const gst = gstRegistered ? total * 0.05 : 0;       // CGST 2.5% + SGST 2.5%
+  const igst = igstApplicable ? total * 0.05 : 0;     // inter-state GST
+  const totalTax = gst + igst;
+
+  // Service fee breakdown
+  const platformFee = total * 0.03;                    // SkipQ platform fee 3%
+  const paymentTerminalFee = total * 0.02;             // payment processing 2%
+  const totalServiceFee = platformFee + paymentTerminalFee;
+
+  const grandTotal = total + totalTax + totalServiceFee;
 
   const handlePlaceOrder = async () => {
     if (items.length === 0) return;
@@ -110,35 +119,57 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
             />
 
             <View style={styles.footer}>
-              <View style={styles.pricingRows}>
+              {/* Subtotal */}
+              <View style={styles.pricingRow}>
+                <Text style={styles.pricingLabel}>Subtotal</Text>
+                <Text style={styles.pricingValue}>₹{total.toFixed(2)}</Text>
+              </View>
+
+              {/* Tax — always shown */}
+              <View style={styles.pricingRow}>
+                <Text style={styles.pricingLabel}>Tax</Text>
+                <Text style={styles.pricingValue}>₹{totalTax.toFixed(2)}</Text>
+              </View>
+              <View style={styles.accordionBody}>
                 <View style={styles.pricingRow}>
-                  <Text style={styles.pricingLabel}>Subtotal</Text>
-                  <Text style={styles.pricingValue}>₹{total.toFixed(2)}</Text>
+                  <Text style={styles.subLabel}>GST (5%)</Text>
+                  <Text style={styles.subValue}>₹{gst.toFixed(2)}</Text>
                 </View>
                 <View style={styles.pricingRow}>
-                  <View>
-                    <Text style={styles.pricingLabel}>Platform fee</Text>
-                    <Text style={styles.pricingSubLabel}>5% of ₹{total.toFixed(2)}</Text>
+                  <Text style={styles.subLabel}>IGST (5%)</Text>
+                  <Text style={styles.subValue}>₹{igst.toFixed(2)}</Text>
+                </View>
+              </View>
+
+              {/* Service fee accordion */}
+              <TouchableOpacity style={styles.accordionRow} onPress={() => setFeeOpen(o => !o)} activeOpacity={0.7}>
+                <View style={styles.accordionLeft}>
+                  {feeOpen
+                    ? <ChevronUp size={14} color={colors.textSecondary} />
+                    : <ChevronDown size={14} color={colors.textSecondary} />}
+                  <Text style={styles.pricingLabel}>Service fee</Text>
+                </View>
+                <Text style={styles.pricingValue}>₹{totalServiceFee.toFixed(2)}</Text>
+              </TouchableOpacity>
+              {feeOpen && (
+                <View style={styles.accordionBody}>
+                  <View style={styles.pricingRow}>
+                    <Text style={styles.subLabel}>Payment terminal (2%)</Text>
+                    <Text style={styles.subValue}>₹{paymentTerminalFee.toFixed(2)}</Text>
                   </View>
-                  <Text style={styles.pricingValue}>₹{platformFee.toFixed(2)}</Text>
+                  <View style={styles.pricingRow}>
+                    <Text style={styles.subLabel}>Platform fee (3%)</Text>
+                    <Text style={styles.subValue}>₹{platformFee.toFixed(2)}</Text>
+                  </View>
                 </View>
-                {gstRegistered && (
-                  <>
-                    <View style={styles.pricingRow}>
-                      <Text style={styles.pricingLabel}>CGST (2.5%)</Text>
-                      <Text style={styles.pricingValue}>₹{cgst.toFixed(2)}</Text>
-                    </View>
-                    <View style={styles.pricingRow}>
-                      <Text style={styles.pricingLabel}>SGST (2.5%)</Text>
-                      <Text style={styles.pricingValue}>₹{sgst.toFixed(2)}</Text>
-                    </View>
-                  </>
-                )}
-                <View style={styles.divider} />
-                <View style={styles.pricingRow}>
-                  <Text style={styles.totalLabel}>Total</Text>
-                  <Text style={styles.totalValue}>₹{grandTotal.toFixed(2)}</Text>
-                </View>
+              )}
+
+              <View style={styles.divider} />
+
+              {/* Total */}
+              <View style={styles.pricingRow}>
+                <Text style={styles.totalLabel}>Total</Text>
+                <Text style={styles.totalValue}>₹{grandTotal.toFixed(2)}</Text>
               </View>
 
               <TouchableOpacity
@@ -160,10 +191,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  screen: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -185,7 +213,6 @@ const styles = StyleSheet.create({
   },
   emptyCart: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontFamily: font.regular, fontSize: 15, color: colors.textSecondary },
-  body: { flex: 1 },
   itemList: { flex: 1 },
   row: {
     flexDirection: 'row',
@@ -213,17 +240,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
     paddingBottom: spacing.lg,
-    gap: spacing.md,
+    gap: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     backgroundColor: colors.surface,
   },
-  pricingRows: { gap: spacing.sm },
   pricingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  accordionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  accordionLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  accordionBody: {
+    paddingLeft: 20,
+    gap: spacing.xs,
+  },
   pricingLabel: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary },
-  pricingSubLabel: { fontFamily: font.regular, fontSize: 11, color: colors.textSecondary, opacity: 0.7 },
   pricingValue: { fontFamily: font.medium, fontSize: 14, color: colors.textSecondary },
-  divider: { height: 1, backgroundColor: colors.border },
+  subLabel: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary, opacity: 0.75 },
+  subValue: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary, opacity: 0.75 },
+  divider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.xs },
   totalLabel: { fontFamily: font.semiBold, fontSize: 15, color: colors.white },
   totalValue: { fontFamily: font.bold, fontSize: 20, color: colors.white },
   placeBtn: {
@@ -231,6 +268,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     paddingVertical: 18,
     alignItems: 'center',
+    marginTop: spacing.xs,
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
