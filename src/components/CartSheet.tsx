@@ -29,8 +29,13 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const setActiveOrder = useStudentStore(state => state.setActiveOrder);
 
+  // TODO: replace with vendor.gstRegistered from backend when integrated
+  const gstRegistered = false;
+
   const platformFee = total * 0.05;
-  const grandTotal = total + platformFee;
+  const cgst = gstRegistered ? total * 0.025 : 0;
+  const sgst = gstRegistered ? total * 0.025 : 0;
+  const grandTotal = total + platformFee + cgst + sgst;
 
   const handlePlaceOrder = async () => {
     if (items.length === 0) return;
@@ -109,9 +114,21 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
                   <Text style={styles.pricingValue}>₹{total.toFixed(2)}</Text>
                 </View>
                 <View style={styles.pricingRow}>
-                  <Text style={styles.pricingLabel}>SkipQ convenience fee (5%)</Text>
+                  <Text style={styles.pricingLabel}>Convenience fee (5%)</Text>
                   <Text style={styles.pricingValue}>₹{platformFee.toFixed(2)}</Text>
                 </View>
+                {gstRegistered && (
+                  <>
+                    <View style={styles.pricingRow}>
+                      <Text style={styles.pricingLabel}>CGST (2.5%)</Text>
+                      <Text style={styles.pricingValue}>₹{cgst.toFixed(2)}</Text>
+                    </View>
+                    <View style={styles.pricingRow}>
+                      <Text style={styles.pricingLabel}>SGST (2.5%)</Text>
+                      <Text style={styles.pricingValue}>₹{sgst.toFixed(2)}</Text>
+                    </View>
+                  </>
+                )}
                 <View style={styles.divider} />
                 <View style={styles.pricingRow}>
                   <Text style={styles.totalLabel}>Total</Text>
