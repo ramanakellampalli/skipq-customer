@@ -117,13 +117,3 @@ const styles = StyleSheet.create({
   },
   logoutText: { fontFamily: font.semiBold, fontSize: 15, color: colors.error },
 });
-lors.error },
-});
-lors.error },
-});
-lors.error },
-});
-ors.error },
-});
-lors.error },
-});
