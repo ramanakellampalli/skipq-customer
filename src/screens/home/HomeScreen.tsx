@@ -1,7 +1,7 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  StatusBar, RefreshControl, ActivityIndicator,
+  StatusBar, RefreshControl,
 } from 'react-native';
 import { MapPin, Clock, ChevronRight } from 'lucide-react-native';
 import { api } from '../../api';
@@ -9,12 +9,18 @@ import { colors, font, radius, spacing } from '../../theme';
 import { Vendor } from '../../types';
 import { useStudentStore } from '../../store/studentStore';
 import { useAuthStore } from '../../store/authStore';
+import Skeleton from '../../components/Skeleton';
 
 export default function HomeScreen({ navigation }: any) {
   const vendors = useStudentStore(state => state.vendors);
   const setSync = useStudentStore(state => state.setSync);
   const name = useAuthStore(state => state.name);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(vendors.length === 0);
+
+  useEffect(() => {
+    if (vendors.length > 0) setIsInitialLoad(false);
+  }, [vendors.length]);
 
   const openVendors = vendors.filter(v => v.isOpen);
   const closedVendors = vendors.filter(v => !v.isOpen);
@@ -63,12 +69,55 @@ export default function HomeScreen({ navigation }: any) {
     );
   };
 
+  const SkeletonCard = () => (
+    <View style={[styles.card, { marginBottom: spacing.sm }]}>
+      <View style={styles.cardGradient}>
+        <View style={styles.cardTop}>
+          <Skeleton width={64} height={22} borderRadius={radius.full} />
+        </View>
+        <View style={styles.cardBottom}>
+          <Skeleton width="55%" height={20} />
+          <Skeleton width={80} height={13} style={{ marginTop: 6 }} />
+        </View>
+      </View>
+    </View>
+  );
+
   const greeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
     if (hour < 17) return 'Good afternoon';
     return 'Good evening';
   };
+
+  const ListHeader = (
+    <View style={styles.header}>
+      <View style={styles.locationRow}>
+        <MapPin size={14} color={colors.primary} />
+        <Text style={styles.locationText}>Campus</Text>
+      </View>
+      <Text style={styles.greeting}>{greeting()},</Text>
+      <Text style={styles.userName}>{name?.split(' ')[0] ?? 'there'} 👋</Text>
+
+      {!isInitialLoad && openVendors.length > 0 && (
+        <View style={styles.sectionLabel}>
+          <Text style={styles.sectionTitle}>
+            {openVendors.length} vendor{openVendors.length !== 1 ? 's' : ''} open now
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+
+  if (isInitialLoad) {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+        {ListHeader}
+        {[1, 2, 3, 4].map(k => <SkeletonCard key={k} />)}
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -88,35 +137,13 @@ export default function HomeScreen({ navigation }: any) {
             colors={[colors.primary]}
           />
         }
-        ListHeaderComponent={
-          <View style={styles.header}>
-            <View style={styles.locationRow}>
-              <MapPin size={14} color={colors.primary} />
-              <Text style={styles.locationText}>Campus</Text>
-            </View>
-            <Text style={styles.greeting}>{greeting()},</Text>
-            <Text style={styles.userName}>{name?.split(' ')[0] ?? 'there'} 👋</Text>
-
-            {openVendors.length > 0 && (
-              <View style={styles.sectionLabel}>
-                <Text style={styles.sectionTitle}>
-                  {openVendors.length} vendor{openVendors.length !== 1 ? 's' : ''} open now
-                </Text>
-              </View>
-            )}
-          </View>
-        }
+        ListHeaderComponent={ListHeader}
         ListFooterComponent={
           closedVendors.length > 0 ? (
             <View style={styles.closedSection}>
               <Text style={styles.closedLabel}>Currently Closed</Text>
             </View>
           ) : null
-        }
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <ActivityIndicator color={colors.primary} size="large" />
-          </View>
         }
       />
     </View>
@@ -168,5 +195,4 @@ const styles = StyleSheet.create({
   metaText: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
   closedSection: { paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: spacing.sm },
   closedLabel: { fontFamily: font.semiBold, fontSize: 13, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 100 },
 });

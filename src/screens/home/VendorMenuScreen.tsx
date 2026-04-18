@@ -1,19 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  ActivityIndicator, StatusBar, Alert,
+  StatusBar, Alert, RefreshControl, Vibration,
 } from 'react-native';
+import Animated, {
+  useSharedValue, useAnimatedStyle, withSpring,
+} from 'react-native-reanimated';
 import { ArrowLeft, Plus, Minus, ShoppingCart } from 'lucide-react-native';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
 import { MenuItem } from '../../types';
 import { useCartStore } from '../../store/cartStore';
 import CartSheet from '../../components/CartSheet';
+import Skeleton from '../../components/Skeleton';
+
+const CART_BAR_HEIGHT = 80;
 
 export default function VendorMenuScreen({ route, navigation }: any) {
   const { vendor } = route.params;
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [cartVisible, setCartVisible] = useState(false);
 
   const addItem = useCartStore(state => state.addItem);
@@ -24,10 +31,39 @@ export default function VendorMenuScreen({ route, navigation }: any) {
   const total = useCartStore(state => state.total());
   const cartVendorId = useCartStore(state => state.vendorId);
 
+  const cartBarY = useSharedValue(CART_BAR_HEIGHT + 40);
+  const cartBarStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: cartBarY.value }],
+  }));
+
+  const showCartBar = itemCount > 0 && cartVendorId === vendor.id;
+
   useEffect(() => {
-    api.student.getMenu(vendor.id)
-      .then(res => setMenuItems(res.data))
-      .finally(() => setLoading(false));
+    cartBarY.value = withSpring(showCartBar ? 0 : CART_BAR_HEIGHT + 40, {
+      damping: 16,
+      stiffness: 160,
+    });
+  }, [showCartBar]);
+
+  const fetchMenu = useCallback(async () => {
+    try {
+      const res = await api.student.getMenu(vendor.id);
+      setMenuItems(res.data);
+    } finally {
+      setLoading(false);
+    }
+  }, [vendor.id]);
+
+  useEffect(() => { fetchMenu(); }, [fetchMenu]);
+
+  const onRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      const res = await api.student.getMenu(vendor.id);
+      setMenuItems(res.data);
+    } finally {
+      setIsRefreshing(false);
+    }
   }, [vendor.id]);
 
   const getItemQty = (menuItemId: string) =>
@@ -40,7 +76,9 @@ export default function VendorMenuScreen({ route, navigation }: any) {
       price: item.price,
     });
 
-    if (result === 'switch_required') {
+    if (result === 'added') {
+      Vibration.vibrate(40);
+    } else if (result === 'switch_required') {
       Alert.alert(
         'Start new cart?',
         `Your cart has items from ${useCartStore.getState().vendorName}. Clear it to order from ${vendor.name}?`,
@@ -52,6 +90,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
             onPress: () => {
               useCartStore.getState().clear();
               addItem(vendor.id, vendor.name, { menuItemId: item.id, name: item.name, price: item.price });
+              Vibration.vibrate(40);
             },
           },
         ],
@@ -61,6 +100,16 @@ export default function VendorMenuScreen({ route, navigation }: any) {
 
   const availableItems = menuItems.filter(i => i.isAvailable);
   const unavailableItems = menuItems.filter(i => !i.isAvailable);
+
+  const SkeletonItem = () => (
+    <View style={[styles.itemCard, { gap: spacing.sm }]}>
+      <View style={styles.itemInfo}>
+        <Skeleton width="65%" height={16} />
+        <Skeleton width={56} height={14} style={{ marginTop: 6 }} />
+      </View>
+      <Skeleton width={36} height={36} borderRadius={radius.sm} />
+    </View>
+  );
 
   const renderItem = ({ item }: { item: MenuItem }) => {
     const qty = getItemQty(item.id);
@@ -107,7 +156,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="light-content" backgroundColor={colors.surface} />
 
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -117,7 +166,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
           <Text style={styles.vendorName}>{vendor.name}</Text>
           <Text style={styles.vendorMeta}>~{vendor.prepTime} min prep time</Text>
         </View>
-        {itemCount > 0 && cartVendorId === vendor.id && (
+        {showCartBar && (
           <TouchableOpacity style={styles.cartIconBtn} onPress={() => setCartVisible(true)}>
             <ShoppingCart size={20} color={colors.white} />
             <View style={styles.cartBadge}>
@@ -128,8 +177,8 @@ export default function VendorMenuScreen({ route, navigation }: any) {
       </View>
 
       {loading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator color={colors.primary} size="large" />
+        <View style={styles.list}>
+          {[1, 2, 3, 4, 5, 6].map(k => <SkeletonItem key={k} />)}
         </View>
       ) : (
         <FlatList
@@ -142,12 +191,20 @@ export default function VendorMenuScreen({ route, navigation }: any) {
               </View>
             ) : renderItem({ item })
           }
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: 110 }]}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
         />
       )}
 
-      {itemCount > 0 && cartVendorId === vendor.id && (
+      <Animated.View style={[styles.cartBarWrapper, cartBarStyle]}>
         <TouchableOpacity style={styles.cartBar} onPress={() => setCartVisible(true)} activeOpacity={0.9}>
           <View style={styles.cartBarLeft}>
             <View style={styles.cartCount}>
@@ -157,7 +214,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
           </View>
           <Text style={styles.cartBarTotal}>₹{total.toFixed(2)}</Text>
         </TouchableOpacity>
-      )}
+      </Animated.View>
 
       <CartSheet
         visible={cartVisible}
@@ -174,7 +231,6 @@ export default function VendorMenuScreen({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -197,7 +253,7 @@ const styles = StyleSheet.create({
     width: 16, height: 16, alignItems: 'center', justifyContent: 'center',
   },
   cartBadgeText: { fontFamily: font.bold, fontSize: 10, color: colors.white },
-  list: { padding: spacing.md, gap: spacing.sm, paddingBottom: 100 },
+  list: { padding: spacing.md, gap: spacing.sm },
   itemCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -207,6 +263,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     gap: spacing.sm,
+    marginBottom: spacing.sm,
   },
   itemUnavailable: { opacity: 0.5 },
   itemInfo: { flex: 1, gap: 3 },
@@ -233,11 +290,17 @@ const styles = StyleSheet.create({
   qtyText: { fontFamily: font.bold, fontSize: 14, color: colors.white, minWidth: 24, textAlign: 'center' },
   dividerRow: { paddingVertical: spacing.sm },
   dividerLabel: { fontFamily: font.semiBold, fontSize: 12, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  cartBarWrapper: {
+    position: 'absolute',
+    bottom: 24,
+    left: spacing.md,
+    right: spacing.md,
+  },
   cartBar: {
-    position: 'absolute', bottom: 24, left: spacing.md, right: spacing.md,
     backgroundColor: colors.primary,
     borderRadius: radius.lg,
-    paddingVertical: 16, paddingHorizontal: spacing.md,
+    paddingVertical: 16,
+    paddingHorizontal: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
