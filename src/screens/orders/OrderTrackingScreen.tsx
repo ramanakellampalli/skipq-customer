@@ -2,11 +2,10 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, StatusBar, Animated } from 'react-native';
 import Ably from 'ably';
 import { CheckCircle2, Circle, Clock } from 'lucide-react-native';
+import Config from 'react-native-config';
 import { useStudentStore } from '../../store/studentStore';
 import { colors, font, radius, spacing } from '../../theme';
 import { Order, OrderStatus } from '../../types';
-
-const ABLY_KEY = 'cIil4A.5cbJuA:dOD-GiNhWEfBA0fTgIP6lSHAtWXzR9PdO2_OVnOBhdA';
 
 const STEPS: { status: OrderStatus; label: string; sublabel: string }[] = [
   { status: 'PENDING',   label: 'Order Placed',      sublabel: 'Waiting for vendor to confirm' },
@@ -44,7 +43,7 @@ export default function OrderTrackingScreen({ route }: any) {
 
   useEffect(() => {
     if (!orderId) return;
-    const client = new Ably.Realtime({ key: ABLY_KEY, closeOnUnload: false });
+    const client = new Ably.Realtime({ key: Config.ABLY_API_KEY, closeOnUnload: false });
     const channel = client.channels.get(`order:${orderId}`);
     channel.subscribe('status', msg => {
       const updated: Order = JSON.parse(msg.data);
