@@ -109,6 +109,12 @@ export default function HomeScreen({ navigation }: any) {
     </View>
   );
 
+  const listData = [
+    ...openVendors,
+    ...(closedVendors.length > 0 ? [{ id: '__closed_header__', isOpen: false, name: '', prepTime: 0 }] : []),
+    ...closedVendors,
+  ];
+
   if (isInitialLoad) {
     return (
       <View style={styles.container}>
@@ -124,9 +130,15 @@ export default function HomeScreen({ navigation }: any) {
       <StatusBar barStyle="light-content" backgroundColor={colors.background} />
 
       <FlatList
-        data={[...openVendors, ...closedVendors]}
+        data={listData}
         keyExtractor={item => item.id}
-        renderItem={renderVendor}
+        renderItem={({ item }) =>
+          item.id === '__closed_header__' ? (
+            <View style={styles.closedSection}>
+              <Text style={styles.closedLabel}>Currently Closed</Text>
+            </View>
+          ) : renderVendor({ item })
+        }
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -138,13 +150,6 @@ export default function HomeScreen({ navigation }: any) {
           />
         }
         ListHeaderComponent={ListHeader}
-        ListFooterComponent={
-          closedVendors.length > 0 ? (
-            <View style={styles.closedSection}>
-              <Text style={styles.closedLabel}>Currently Closed</Text>
-            </View>
-          ) : null
-        }
       />
     </View>
   );

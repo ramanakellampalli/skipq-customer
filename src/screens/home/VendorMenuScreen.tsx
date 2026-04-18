@@ -221,7 +221,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
         onClose={() => setCartVisible(false)}
         onOrderPlaced={orderId => {
           setCartVisible(false);
-          navigation.navigate('OrderTracking', { orderId });
+          navigation.navigate('Orders', { screen: 'OrderTracking', params: { orderId } });
         }}
         vendorId={vendor.id}
       />

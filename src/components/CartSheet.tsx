@@ -6,6 +6,7 @@ import {
 import { X, Minus, Plus, ShoppingBag } from 'lucide-react-native';
 import { api } from '../api';
 import { useCartStore } from '../store/cartStore';
+import { useStudentStore } from '../store/studentStore';
 import { colors, font, radius, spacing } from '../theme';
 import { CartItem } from '../types';
 import OrderSuccessOverlay from './OrderSuccessOverlay';
@@ -26,6 +27,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const setActiveOrder = useStudentStore(state => state.setActiveOrder);
 
   const handlePlaceOrder = async () => {
     if (items.length === 0) return;
@@ -36,6 +38,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
         items.map(i => ({ menuItemId: i.menuItemId, quantity: i.quantity })),
       );
       clear();
+      setActiveOrder(data);
       setPendingOrderId(data.id);
       setShowSuccess(true);
     } catch (err: any) {

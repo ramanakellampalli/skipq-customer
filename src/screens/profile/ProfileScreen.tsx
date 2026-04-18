@@ -5,6 +5,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useStudentStore } from '../../store/studentStore';
 import { useCartStore } from '../../store/cartStore';
 import { colors, font, radius, spacing } from '../../theme';
+import { clearCredentials } from '../../utils/biometrics';
 
 export default function ProfileScreen() {
   const { name, email, logout } = useAuthStore();
@@ -24,6 +25,7 @@ export default function ProfileScreen() {
         onPress: async () => {
           clear();
           reset();
+          await clearCredentials();
           await logout();
         },
       },

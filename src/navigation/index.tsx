@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../store/authStore';
 import { useStudentStore } from '../store/studentStore';
 import { colors, font } from '../theme';
+import { api } from '../api';
 
 import LandingScreen from '../screens/auth/LandingScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -105,10 +106,17 @@ function MainNavigator() {
 
 export default function Navigation() {
   const { token, isLoading, loadFromStorage } = useAuthStore();
+  const setSync = useStudentStore(state => state.setSync);
 
   useEffect(() => {
     loadFromStorage();
   }, [loadFromStorage]);
+
+  useEffect(() => {
+    if (token) {
+      api.student.sync().then(res => setSync(res.data)).catch(() => {});
+    }
+  }, [token, setSync]);
 
   if (isLoading) return null;
 
