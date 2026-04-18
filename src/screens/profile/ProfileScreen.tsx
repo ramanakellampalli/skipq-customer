@@ -1,0 +1,113 @@
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert } from 'react-native';
+import { LogOut, User, Mail } from 'lucide-react-native';
+import { useAuthStore } from '../../store/authStore';
+import { useStudentStore } from '../../store/studentStore';
+import { useCartStore } from '../../store/cartStore';
+import { colors, font, radius, spacing } from '../../theme';
+
+export default function ProfileScreen() {
+  const { name, email, logout } = useAuthStore();
+  const { reset } = useStudentStore();
+  const { clear } = useCartStore();
+
+  const initials = name
+    ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : '?';
+
+  const handleLogout = () => {
+    Alert.alert('Log out', 'Are you sure you want to log out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Log Out',
+        style: 'destructive',
+        onPress: async () => {
+          clear();
+          reset();
+          await logout();
+        },
+      },
+    ]);
+  };
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+
+      <View style={styles.header}>
+        <Text style={styles.title}>Profile</Text>
+      </View>
+
+      <View style={styles.avatarSection}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{initials}</Text>
+        </View>
+        <Text style={styles.userName}>{name ?? '—'}</Text>
+      </View>
+
+      <View style={styles.section}>
+        <View style={styles.row}>
+          <User size={18} color={colors.textSecondary} />
+          <View style={styles.rowInfo}>
+            <Text style={styles.rowLabel}>Name</Text>
+            <Text style={styles.rowValue}>{name ?? '—'}</Text>
+          </View>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.row}>
+          <Mail size={18} color={colors.textSecondary} />
+          <View style={styles.rowInfo}>
+            <Text style={styles.rowLabel}>Email</Text>
+            <Text style={styles.rowValue}>{email ?? '—'}</Text>
+          </View>
+        </View>
+      </View>
+
+      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
+        <LogOut size={18} color={colors.error} />
+        <Text style={styles.logoutText}>Log Out</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  header: { paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md },
+  title: { fontFamily: font.bold, fontSize: 22, color: colors.white },
+  avatarSection: { alignItems: 'center', paddingVertical: spacing.xl, gap: spacing.md },
+  avatar: {
+    width: 80, height: 80, borderRadius: 40,
+    backgroundColor: colors.primary,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  avatarText: { fontFamily: font.bold, fontSize: 28, color: colors.white },
+  userName: { fontFamily: font.bold, fontSize: 20, color: colors.white },
+  section: {
+    marginHorizontal: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  row: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, gap: spacing.md },
+  rowInfo: { flex: 1 },
+  rowLabel: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary },
+  rowValue: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
+  divider: { height: 1, backgroundColor: colors.border, marginLeft: 54 },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.error,
+    padding: spacing.md,
+    justifyContent: 'center',
+  },
+  logoutText: { fontFamily: font.semiBold, fontSize: 15, color: colors.error },
+});
