@@ -31,20 +31,21 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
   const setActiveOrder = useStudentStore(state => state.setActiveOrder);
 
   // TODO: replace with vendor flags from backend when integrated
-  const gstRegistered = false;
+  const gstRegistered = true;
   const igstApplicable = false;
 
-  // Tax breakdown
-  const gst = gstRegistered ? total * 0.05 : 0;       // CGST 2.5% + SGST 2.5%
-  const igst = igstApplicable ? total * 0.05 : 0;     // inter-state GST
-  const totalTax = gst + igst;
+  // Tax breakdown — GST splits into CGST 2.5% + SGST 2.5% (intra-state)
+  const cgst = gstRegistered ? total * 0.025 : 0;
+  const sgst = gstRegistered ? total * 0.025 : 0;
+  const igst = igstApplicable ? total * 0.05 : 0;     // inter-state replaces CGST+SGST
+  const totalTax = cgst + sgst + igst;
 
   // Service fee breakdown
   const platformFee = total * 0.03;                    // SkipQ platform fee 3%
   const paymentTerminalFee = total * 0.02;             // payment processing 2%
   const totalServiceFee = platformFee + paymentTerminalFee;
 
-  const grandTotal = total + totalTax + totalServiceFee;
+  const grandTotal = total + cgst + sgst + igst + totalServiceFee;
 
   const handlePlaceOrder = async () => {
     if (items.length === 0) return;
@@ -132,13 +133,19 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
               </View>
               <View style={styles.accordionBody}>
                 <View style={styles.pricingRow}>
-                  <Text style={styles.subLabel}>GST (5%)</Text>
-                  <Text style={styles.subValue}>₹{gst.toFixed(2)}</Text>
+                  <Text style={styles.subLabel}>CGST (2.5%)</Text>
+                  <Text style={styles.subValue}>₹{cgst.toFixed(2)}</Text>
                 </View>
                 <View style={styles.pricingRow}>
-                  <Text style={styles.subLabel}>IGST (5%)</Text>
-                  <Text style={styles.subValue}>₹{igst.toFixed(2)}</Text>
+                  <Text style={styles.subLabel}>SGST (2.5%)</Text>
+                  <Text style={styles.subValue}>₹{sgst.toFixed(2)}</Text>
                 </View>
+                {igstApplicable && (
+                  <View style={styles.pricingRow}>
+                    <Text style={styles.subLabel}>IGST (5%)</Text>
+                    <Text style={styles.subValue}>₹{igst.toFixed(2)}</Text>
+                  </View>
+                )}
               </View>
 
               {/* Service fee accordion */}
