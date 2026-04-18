@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Modal,
-  FlatList, Alert, ActivityIndicator,
+  FlatList, Alert, ActivityIndicator, SafeAreaView,
 } from 'react-native';
 import { X, Minus, Plus, ShoppingBag } from 'lucide-react-native';
 import { api } from '../api';
@@ -28,6 +28,9 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
   const [showSuccess, setShowSuccess] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const setActiveOrder = useStudentStore(state => state.setActiveOrder);
+
+  const platformFee = total * 0.05;
+  const grandTotal = total + platformFee;
 
   const handlePlaceOrder = async () => {
     if (items.length === 0) return;
@@ -67,7 +70,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
   );
 
   return (
-    <Modal visible={visible || showSuccess} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal visible={visible || showSuccess} animationType="slide" transparent={false} onRequestClose={onClose}>
       <OrderSuccessOverlay
         visible={showSuccess}
         onDone={() => {
@@ -75,16 +78,13 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
           if (pendingOrderId) onOrderPlaced(pendingOrderId);
         }}
       />
-      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-      <View style={styles.sheet}>
-        <View style={styles.handle} />
-
-        <View style={styles.sheetHeader}>
-          <View style={styles.sheetTitleRow}>
+      <SafeAreaView style={styles.screen}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
             <ShoppingBag size={18} color={colors.primary} />
-            <Text style={styles.sheetTitle}>Your Order</Text>
+            <Text style={styles.headerTitle}>Your Order</Text>
           </View>
-          <TouchableOpacity onPress={onClose}>
+          <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
             <X size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
@@ -100,7 +100,6 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
               keyExtractor={i => i.menuItemId}
               renderItem={renderItem}
               style={styles.itemList}
-              scrollEnabled={items.length > 4}
             />
 
             <View style={styles.footer}>
@@ -110,13 +109,13 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
                   <Text style={styles.pricingValue}>₹{total.toFixed(2)}</Text>
                 </View>
                 <View style={styles.pricingRow}>
-                  <Text style={styles.pricingLabel}>Service fee</Text>
-                  <Text style={styles.pricingValue}>₹{(total * 0.05).toFixed(2)}</Text>
+                  <Text style={styles.pricingLabel}>SkipQ convenience fee (5%)</Text>
+                  <Text style={styles.pricingValue}>₹{platformFee.toFixed(2)}</Text>
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.pricingRow}>
                   <Text style={styles.totalLabel}>Total</Text>
-                  <Text style={styles.totalValue}>₹{(total * 1.05).toFixed(2)}</Text>
+                  <Text style={styles.totalValue}>₹{grandTotal.toFixed(2)}</Text>
                 </View>
               </View>
 
@@ -127,54 +126,49 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
                 activeOpacity={0.85}>
                 {loading
                   ? <ActivityIndicator color={colors.white} />
-                  : <Text style={styles.placeBtnText}>Place Order · ₹{(total * 1.05).toFixed(2)}</Text>
+                  : <Text style={styles.placeBtnText}>Place Order · ₹{grandTotal.toFixed(2)}</Text>
                 }
               </TouchableOpacity>
             </View>
           </>
         )}
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
+  screen: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: colors.background,
   },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
-    paddingBottom: 32,
-    maxHeight: '75%',
-  },
-  handle: {
-    width: 40, height: 4,
-    backgroundColor: colors.surfaceHigh,
-    borderRadius: radius.full,
-    alignSelf: 'center',
-    marginTop: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  sheetHeader: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    marginBottom: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  sheetTitleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  sheetTitle: { fontFamily: font.bold, fontSize: 18, color: colors.white },
-  emptyCart: { padding: spacing.xl, alignItems: 'center' },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  headerTitle: { fontFamily: font.bold, fontSize: 18, color: colors.white },
+  closeBtn: {
+    width: 36, height: 36,
+    borderRadius: radius.full,
+    backgroundColor: colors.surface,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  emptyCart: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontFamily: font.regular, fontSize: 15, color: colors.textSecondary },
-  itemList: { flexGrow: 0 },
+  itemList: { flex: 1 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     gap: spacing.sm,
@@ -195,7 +189,11 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
+    paddingBottom: spacing.lg,
     gap: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.surface,
   },
   pricingRows: { gap: spacing.sm },
   pricingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
