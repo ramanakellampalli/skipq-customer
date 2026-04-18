@@ -116,7 +116,10 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
                   <Text style={styles.pricingValue}>₹{total.toFixed(2)}</Text>
                 </View>
                 <View style={styles.pricingRow}>
-                  <Text style={styles.pricingLabel}>Convenience fee (5%)</Text>
+                  <View>
+                    <Text style={styles.pricingLabel}>Platform fee</Text>
+                    <Text style={styles.pricingSubLabel}>5% of ₹{total.toFixed(2)}</Text>
+                  </View>
                   <Text style={styles.pricingValue}>₹{platformFee.toFixed(2)}</Text>
                 </View>
                 {gstRegistered && (
@@ -218,6 +221,7 @@ const styles = StyleSheet.create({
   pricingRows: { gap: spacing.sm },
   pricingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   pricingLabel: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary },
+  pricingSubLabel: { fontFamily: font.regular, fontSize: 11, color: colors.textSecondary, opacity: 0.7 },
   pricingValue: { fontFamily: font.medium, fontSize: 14, color: colors.textSecondary },
   divider: { height: 1, backgroundColor: colors.border },
   totalLabel: { fontFamily: font.semiBold, fontSize: 15, color: colors.white },
