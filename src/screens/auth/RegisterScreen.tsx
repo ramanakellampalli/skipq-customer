@@ -60,10 +60,10 @@ export default function RegisterScreen({ navigation }: any) {
 
         <View style={styles.form}>
           {[
-            { label: 'Full Name', value: name, onChange: setName, placeholder: 'Ramana Kumar', secure: false, keyboard: 'default' as const },
-            { label: 'Email', value: email, onChange: setEmail, placeholder: 'you@college.edu', secure: false, keyboard: 'email-address' as const },
-            { label: 'Password', value: password, onChange: setPassword, placeholder: 'Min 8 characters', secure: true, keyboard: 'default' as const },
-            { label: 'Confirm Password', value: confirm, onChange: setConfirm, placeholder: 'Re-enter password', secure: true, keyboard: 'default' as const },
+            { label: 'Full Name', value: name, onChange: setName, placeholder: 'Ramana Kumar', secure: false, keyboard: 'default' as const, capitalize: 'words' as const },
+            { label: 'Email', value: email, onChange: setEmail, placeholder: 'you@college.edu', secure: false, keyboard: 'email-address' as const, capitalize: 'none' as const },
+            { label: 'Password', value: password, onChange: setPassword, placeholder: 'Min 8 characters', secure: true, keyboard: 'default' as const, capitalize: 'none' as const },
+            { label: 'Confirm Password', value: confirm, onChange: setConfirm, placeholder: 'Re-enter password', secure: true, keyboard: 'default' as const, capitalize: 'none' as const },
           ].map(f => (
             <View key={f.label} style={styles.field}>
               <Text style={styles.label}>{f.label}</Text>
@@ -75,7 +75,7 @@ export default function RegisterScreen({ navigation }: any) {
                 placeholderTextColor={colors.textSecondary}
                 secureTextEntry={f.secure}
                 keyboardType={f.keyboard}
-                autoCapitalize={f.keyboard === 'email-address' ? 'none' : 'words'}
+                autoCapitalize={f.capitalize}
                 autoCorrect={false}
               />
             </View>

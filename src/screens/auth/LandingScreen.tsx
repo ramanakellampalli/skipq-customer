@@ -1,10 +1,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Dimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, font, radius, spacing } from '../../theme';
 
 const { height } = Dimensions.get('window');
 
 export default function LandingScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.background} />
@@ -17,7 +19,7 @@ export default function LandingScreen({ navigation }: any) {
         <Text style={styles.tagline}>Order ahead.{'\n'}Skip the queue.</Text>
       </View>
 
-      <View style={styles.bottom}>
+      <View style={[styles.bottom, { paddingBottom: insets.bottom + spacing.lg }]}>
         <TouchableOpacity
           style={styles.registerBtn}
           onPress={() => navigation.navigate('Register')}
@@ -74,7 +76,6 @@ const styles = StyleSheet.create({
   },
   bottom: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl + 16,
     gap: spacing.sm,
   },
   registerBtn: {

@@ -12,11 +12,16 @@ client.interceptors.request.use(async config => {
   return config;
 });
 
+const AUTH_ENDPOINTS = ['/api/v1/auth/login', '/api/v1/auth/register'];
+
 client.interceptors.response.use(
   r => r,
   async err => {
-    if (err.response?.status === 401) {
+    const isAuthCall = AUTH_ENDPOINTS.some(e => err.config?.url?.includes(e));
+    if (err.response?.status === 401 && !isAuthCall) {
       await AsyncStorage.multiRemove(['token', 'userId', 'name', 'email']);
+      const { useAuthStore } = await import('../store/authStore');
+      useAuthStore.setState({ token: null, userId: null, name: null, email: null });
     }
     return Promise.reject(err);
   },
