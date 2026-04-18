@@ -28,6 +28,21 @@ export default function LoginScreen({ navigation }: any) {
       if (available && hasCreds) {
         const label = await getBiometricLabel();
         setBiometricLabel(label);
+        // auto-prompt on screen open
+        try {
+          const success = await promptBiometric(`Sign in to SkipQ with ${label}`);
+          if (success) {
+            const creds = await getCredentials();
+            if (creds) {
+              setLoading(true);
+              await doLogin(creds.email, creds.password);
+            }
+          }
+        } catch {
+          // user cancelled or biometric failed — fall through to manual login
+        } finally {
+          setLoading(false);
+        }
       }
     })();
   }, []);
