@@ -104,9 +104,20 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
             />
 
             <View style={styles.footer}>
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total</Text>
-                <Text style={styles.totalValue}>₹{total.toFixed(2)}</Text>
+              <View style={styles.pricingRows}>
+                <View style={styles.pricingRow}>
+                  <Text style={styles.pricingLabel}>Subtotal</Text>
+                  <Text style={styles.pricingValue}>₹{total.toFixed(2)}</Text>
+                </View>
+                <View style={styles.pricingRow}>
+                  <Text style={styles.pricingLabel}>Service fee</Text>
+                  <Text style={styles.pricingValue}>₹{(total * 0.05).toFixed(2)}</Text>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.pricingRow}>
+                  <Text style={styles.totalLabel}>Total</Text>
+                  <Text style={styles.totalValue}>₹{(total * 1.05).toFixed(2)}</Text>
+                </View>
               </View>
 
               <TouchableOpacity
@@ -116,7 +127,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId }:
                 activeOpacity={0.85}>
                 {loading
                   ? <ActivityIndicator color={colors.white} />
-                  : <Text style={styles.placeBtnText}>Place Order · ₹{total.toFixed(2)}</Text>
+                  : <Text style={styles.placeBtnText}>Place Order · ₹{(total * 1.05).toFixed(2)}</Text>
                 }
               </TouchableOpacity>
             </View>
@@ -186,12 +197,12 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     gap: spacing.md,
   },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  totalLabel: { fontFamily: font.semiBold, fontSize: 15, color: colors.textSecondary },
+  pricingRows: { gap: spacing.sm },
+  pricingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  pricingLabel: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary },
+  pricingValue: { fontFamily: font.medium, fontSize: 14, color: colors.textSecondary },
+  divider: { height: 1, backgroundColor: colors.border },
+  totalLabel: { fontFamily: font.semiBold, fontSize: 15, color: colors.white },
   totalValue: { fontFamily: font.bold, fontSize: 20, color: colors.white },
   placeBtn: {
     backgroundColor: colors.primary,

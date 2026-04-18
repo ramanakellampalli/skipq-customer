@@ -135,6 +135,37 @@ export default function OrderTrackingScreen({ route }: any) {
           <Text style={styles.readyText}>🎉 Your order is ready! Head to the counter.</Text>
         </View>
       )}
+
+      {order && (
+        <View style={styles.receiptCard}>
+          <Text style={styles.receiptTitle}>Order Summary</Text>
+          <View style={styles.receiptRow}>
+            <Text style={styles.receiptLabel}>Subtotal</Text>
+            <Text style={styles.receiptValue}>₹{(order.subtotal ?? order.totalAmount).toFixed(2)}</Text>
+          </View>
+          <View style={styles.receiptRow}>
+            <Text style={styles.receiptLabel}>Service fee</Text>
+            <Text style={styles.receiptValue}>₹{(order.markupAmount ?? order.totalAmount * 0.05).toFixed(2)}</Text>
+          </View>
+          {order.taxAmount > 0 && (
+            <>
+              <View style={styles.receiptRow}>
+                <Text style={styles.receiptLabel}>CGST (2.5%)</Text>
+                <Text style={styles.receiptValue}>₹{order.cgst.toFixed(2)}</Text>
+              </View>
+              <View style={styles.receiptRow}>
+                <Text style={styles.receiptLabel}>SGST (2.5%)</Text>
+                <Text style={styles.receiptValue}>₹{order.sgst.toFixed(2)}</Text>
+              </View>
+            </>
+          )}
+          <View style={styles.receiptDivider} />
+          <View style={styles.receiptRow}>
+            <Text style={styles.receiptTotal}>Total</Text>
+            <Text style={styles.receiptTotal}>₹{order.totalAmount.toFixed(2)}</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -205,4 +236,20 @@ const styles = StyleSheet.create({
   rejectedIcon: { fontSize: 40 },
   rejectedTitle: { fontFamily: font.bold, fontSize: 20, color: colors.error },
   rejectedSub: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
+  receiptCard: {
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  receiptTitle: { fontFamily: font.semiBold, fontSize: 14, color: colors.textSecondary, marginBottom: 2 },
+  receiptRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  receiptLabel: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary },
+  receiptValue: { fontFamily: font.medium, fontSize: 14, color: colors.textSecondary },
+  receiptDivider: { height: 1, backgroundColor: colors.border },
+  receiptTotal: { fontFamily: font.bold, fontSize: 15, color: colors.white },
 });

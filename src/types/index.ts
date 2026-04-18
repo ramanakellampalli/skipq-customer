@@ -36,6 +36,11 @@ export interface Order {
   status: OrderStatus;
   paymentStatus: 'PENDING' | 'PAID' | 'REFUNDED';
   items: OrderItem[];
+  subtotal: number;
+  markupAmount: number;
+  cgst: number;
+  sgst: number;
+  taxAmount: number;
   totalAmount: number;
   estimatedReadyAt: string;
   createdAt: string;
