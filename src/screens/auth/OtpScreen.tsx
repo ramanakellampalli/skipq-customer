@@ -11,10 +11,9 @@ import { colors, font, radius, spacing } from '../../theme';
 const OTP_LENGTH = 6;
 
 export default function OtpScreen({ route, navigation }: any) {
-  const { email, mode } = route.params as { email: string; mode: 'login' | 'register' };
+  const { email } = route.params as { email: string };
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''));
   const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
   const inputs = useRef<(TextInput | null)[]>([]);
   const { setAuth } = useAuthStore();
   const { setSync } = useStudentStore();
@@ -55,22 +54,7 @@ export default function OtpScreen({ route, navigation }: any) {
   };
 
   const handleResend = async () => {
-    try {
-      setResending(true);
-      if (mode === 'login') {
-        await api.auth.login(email);
-      } else {
-        Alert.alert('Check your email', 'Please go back and register again to resend.');
-        return;
-      }
-      Alert.alert('Sent', 'A new code has been sent to your email');
-      setOtp(Array(OTP_LENGTH).fill(''));
-      inputs.current[0]?.focus();
-    } catch {
-      Alert.alert('Error', 'Could not resend OTP. Try again.');
-    } finally {
-      setResending(false);
-    }
+    Alert.alert('Resend OTP', 'Please go back and register again to get a new code.');
   };
 
   const handleVerifyPress = () => {
@@ -128,10 +112,10 @@ export default function OtpScreen({ route, navigation }: any) {
           }
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={handleResend} disabled={resending} style={styles.resendBtn}>
+        <TouchableOpacity onPress={handleResend} style={styles.resendBtn}>
           <Text style={styles.resendText}>
-            {resending ? 'Sending...' : "Didn't receive it? "}
-            {!resending && <Text style={styles.resendLink}>Resend</Text>}
+            {"Didn't receive it? "}
+            <Text style={styles.resendLink}>Go back</Text>
           </Text>
         </TouchableOpacity>
       </View>

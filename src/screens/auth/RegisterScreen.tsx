@@ -9,17 +9,27 @@ import { colors, font, radius, spacing } from '../../theme';
 export default function RegisterScreen({ navigation }: any) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!name.trim() || !email.trim()) {
-      Alert.alert('Missing fields', 'Please enter your name and email');
+    if (!name.trim() || !email.trim() || !password) {
+      Alert.alert('Missing fields', 'Please fill in all fields');
+      return;
+    }
+    if (password.length < 8) {
+      Alert.alert('Weak password', 'Password must be at least 8 characters');
+      return;
+    }
+    if (password !== confirm) {
+      Alert.alert('Password mismatch', 'Passwords do not match');
       return;
     }
     try {
       setLoading(true);
-      await api.auth.register(name.trim(), email.trim());
-      navigation.navigate('Otp', { email: email.trim(), mode: 'register' });
+      await api.auth.register(name.trim(), email.trim(), password);
+      navigation.navigate('Otp', { email: email.trim() });
     } catch (err: any) {
       Alert.alert('Registration Failed', err.response?.data?.message || 'Something went wrong');
     } finally {
@@ -43,32 +53,27 @@ export default function RegisterScreen({ navigation }: any) {
         </View>
 
         <View style={styles.form}>
-          <View style={styles.field}>
-            <Text style={styles.label}>Full Name</Text>
-            <TextInput
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-              placeholder="John Doe"
-              placeholderTextColor={colors.textSecondary}
-              autoCapitalize="words"
-              autoCorrect={false}
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>College Email</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="you@college.edu"
-              placeholderTextColor={colors.textSecondary}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
+          {[
+            { label: 'Full Name', value: name, onChange: setName, placeholder: 'John Doe', secure: false, keyboard: 'default' as const, capitalize: 'words' as const },
+            { label: 'College Email', value: email, onChange: setEmail, placeholder: 'you@college.edu', secure: false, keyboard: 'email-address' as const, capitalize: 'none' as const },
+            { label: 'Password', value: password, onChange: setPassword, placeholder: 'Min 8 characters', secure: true, keyboard: 'default' as const, capitalize: 'none' as const },
+            { label: 'Confirm Password', value: confirm, onChange: setConfirm, placeholder: 'Re-enter password', secure: true, keyboard: 'default' as const, capitalize: 'none' as const },
+          ].map(f => (
+            <View key={f.label} style={styles.field}>
+              <Text style={styles.label}>{f.label}</Text>
+              <TextInput
+                style={styles.input}
+                value={f.value}
+                onChangeText={f.onChange}
+                placeholder={f.placeholder}
+                placeholderTextColor={colors.textSecondary}
+                secureTextEntry={f.secure}
+                keyboardType={f.keyboard}
+                autoCapitalize={f.capitalize}
+                autoCorrect={false}
+              />
+            </View>
+          ))}
 
           <TouchableOpacity
             style={[styles.btn, loading && styles.btnDisabled]}
@@ -77,7 +82,7 @@ export default function RegisterScreen({ navigation }: any) {
             activeOpacity={0.85}>
             {loading
               ? <ActivityIndicator color={colors.white} />
-              : <Text style={styles.btnText}>Send OTP</Text>
+              : <Text style={styles.btnText}>Create Account</Text>
             }
           </TouchableOpacity>
         </View>
