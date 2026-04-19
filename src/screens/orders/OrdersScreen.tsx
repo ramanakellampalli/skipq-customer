@@ -48,17 +48,17 @@ export default function OrdersScreen({ navigation }: any) {
     <View style={styles.pastCard}>
       <View style={styles.pastHeader}>
         <Text style={styles.pastId}>#{item.id.slice(0, 8).toUpperCase()}</Text>
-        <Text style={[styles.pastStatus, { color: STATUS_COLOR[item.status] }]}>
-          {STATUS_LABEL[item.status]}
+        <Text style={[styles.pastStatus, { color: STATUS_COLOR[item.state.orderStatus] }]}>
+          {STATUS_LABEL[item.state.orderStatus]}
         </Text>
       </View>
-      <Text style={styles.pastVendor}>{item.vendorName}</Text>
+      <Text style={styles.pastVendor}>{item.vendor.name}</Text>
       <Text style={styles.pastItems} numberOfLines={1}>
         {item.items.map(i => `${i.quantity}× ${i.name}`).join(', ')}
       </Text>
       <View style={styles.pastFooter}>
-        <Text style={styles.pastTotal}>₹{item.totalAmount.toFixed(2)}</Text>
-        <Text style={styles.pastTime}>{timeAgo(item.createdAt)}</Text>
+        <Text style={styles.pastTotal}>₹{item.pricing.totalAmount.toFixed(2)}</Text>
+        <Text style={styles.pastTime}>{timeAgo(item.timeline.createdAt)}</Text>
       </View>
     </View>
   );
@@ -94,15 +94,15 @@ export default function OrdersScreen({ navigation }: any) {
                   </View>
                   <ChevronRight size={18} color={colors.primary} />
                 </View>
-                <Text style={styles.activeVendor}>{activeOrder.vendorName}</Text>
+                <Text style={styles.activeVendor}>{activeOrder.vendor.name}</Text>
                 <Text style={styles.activeItems} numberOfLines={1}>
                   {activeOrder.items.map(i => `${i.quantity}× ${i.name}`).join(', ')}
                 </Text>
                 <View style={styles.activeFooter}>
-                  <Text style={[styles.activeStatus, { color: STATUS_COLOR[activeOrder.status] }]}>
-                    {STATUS_LABEL[activeOrder.status]}
+                  <Text style={[styles.activeStatus, { color: STATUS_COLOR[activeOrder.state.orderStatus] }]}>
+                    {STATUS_LABEL[activeOrder.state.orderStatus]}
                   </Text>
-                  <Text style={styles.activeTotal}>₹{activeOrder.totalAmount.toFixed(2)}</Text>
+                  <Text style={styles.activeTotal}>₹{activeOrder.pricing.totalAmount.toFixed(2)}</Text>
                 </View>
               </TouchableOpacity>
             )}
