@@ -111,7 +111,7 @@ export default function HomeScreen({ navigation }: any) {
 
   const listData = [
     ...openVendors,
-    ...(closedVendors.length > 0 ? [{ id: '__closed_header__', isOpen: false, name: '', prepTime: 0 }] : []),
+    ...(closedVendors.length > 0 ? [{ id: '__closed_header__', isOpen: false, name: '', prepTime: 0, gstRegistered: false }] : []),
     ...closedVendors,
   ];
 
