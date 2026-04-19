@@ -45,18 +45,6 @@ jobs:
           echo "API_URL=http://localhost:8080" > .env
           echo "ABLY_API_KEY=ci_placeholder" >> .env
 
-      - name: Decode keystore
-        run: echo "${{ secrets.SKIPQ_CUSTOMER_KEYSTORE }}" | base64 --decode > android/app/skipq-customer-release.keystore
-
-      - name: Write gradle.properties
-        run: |
-          cat >> android/gradle.properties << EOF
-          SKIPQ_CUSTOMER_STORE_FILE=skipq-customer-release.keystore
-          SKIPQ_CUSTOMER_KEY_ALIAS=${{ secrets.SKIPQ_CUSTOMER_KEY_ALIAS }}
-          SKIPQ_CUSTOMER_STORE_PASSWORD=${{ secrets.SKIPQ_CUSTOMER_STORE_PASSWORD }}
-          SKIPQ_CUSTOMER_KEY_PASSWORD=${{ secrets.SKIPQ_CUSTOMER_KEY_PASSWORD }}
-          EOF
-
-      - name: Build Android release AAB
+      - name: Build Android debug
         working-directory: android
-        run: ./gradlew bundleRelease --no-daemon
+        run: ./gradlew assembleDebug --no-daemon
