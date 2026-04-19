@@ -1,7 +1,9 @@
 import { client } from './client';
 import { Vendor, MenuItem, Order } from '../types';
+import { StudentProfile } from '../store/studentStore';
 
 export interface StudentSyncResponse {
+  profile: StudentProfile;
   vendors: Vendor[];
   activeOrder: Order | null;
   pastOrders: Order[];
@@ -14,7 +16,7 @@ export const api = {
     login: (email: string, password: string) =>
       client.post<{ token: string; userId: string; name: string; email: string }>('/api/v1/auth/login', { email, password }),
     verifyOtp: (email: string, otp: string) =>
-      client.post<{ token: string; userId: string; name: string; email: string }>('/api/v1/auth/verify-otp', { email, otp }),
+      client.post<{ token: string; userId: string; name: string; email: string }>('/api/v1/auth/verify-otp', { email, code: otp }),
   },
 
   student: {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert } from 'react-native';
-import { LogOut, User, Mail } from 'lucide-react-native';
+import { LogOut, MapPin, Mail } from 'lucide-react-native';
 import { useAuthStore } from '../../store/authStore';
 import { useStudentStore } from '../../store/studentStore';
 import { useCartStore } from '../../store/cartStore';
@@ -8,32 +8,30 @@ import { hasSavedCredentials } from '../../utils/biometrics';
 import { colors, font, radius, spacing } from '../../theme';
 
 export default function ProfileScreen() {
-  const { name, email, logout } = useAuthStore();
-  const { reset } = useStudentStore();
+  const { logout } = useAuthStore();
+  const { profile, reset } = useStudentStore();
   const { clear } = useCartStore();
 
-  const initials = name
-    ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  const initials = profile?.name
+    ? profile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : '?';
 
   const handleLogout = async () => {
     const hasBiometrics = await hasSavedCredentials();
-    const message = hasBiometrics
-      ? 'You will be logged out. Use your fingerprint to sign back in quickly.'
-      : 'Are you sure you want to log out?';
-
-    Alert.alert('Log out', message, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Log Out',
-        style: 'destructive',
-        onPress: async () => {
-          clear();
-          reset();
-          await logout();
+    Alert.alert(
+      'Log out',
+      hasBiometrics
+        ? 'You will be logged out. Use your fingerprint to sign back in quickly.'
+        : 'Are you sure you want to log out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Log Out',
+          style: 'destructive',
+          onPress: async () => { clear(); reset(); await logout(); },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   return (
@@ -44,29 +42,39 @@ export default function ProfileScreen() {
         <Text style={styles.title}>Profile</Text>
       </View>
 
+      {/* Avatar + Name */}
       <View style={styles.avatarSection}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{initials}</Text>
         </View>
-        <Text style={styles.userName}>{name ?? '—'}</Text>
+        <Text style={styles.name}>{profile?.name ?? '—'}</Text>
       </View>
 
+      {/* Email + Campus */}
       <View style={styles.section}>
         <View style={styles.row}>
-          <User size={18} color={colors.textSecondary} />
-          <View style={styles.rowInfo}>
-            <Text style={styles.rowLabel}>Name</Text>
-            <Text style={styles.rowValue}>{name ?? '—'}</Text>
+          <View style={styles.iconWrap}>
+            <Mail size={16} color={colors.primary} />
           </View>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.row}>
-          <Mail size={18} color={colors.textSecondary} />
-          <View style={styles.rowInfo}>
+          <View style={styles.rowContent}>
             <Text style={styles.rowLabel}>Email</Text>
-            <Text style={styles.rowValue}>{email ?? '—'}</Text>
+            <Text style={styles.rowValue} numberOfLines={1}>{profile?.email ?? '—'}</Text>
           </View>
         </View>
+        {profile?.campusName && (
+          <>
+            <View style={styles.divider} />
+            <View style={styles.row}>
+              <View style={styles.iconWrap}>
+                <MapPin size={16} color={colors.primary} />
+              </View>
+              <View style={styles.rowContent}>
+                <Text style={styles.rowLabel}>Campus</Text>
+                <Text style={styles.rowValue}>{profile.campusName}</Text>
+              </View>
+            </View>
+          </>
+        )}
       </View>
 
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
@@ -81,14 +89,14 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: { paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md },
   title: { fontFamily: font.bold, fontSize: 22, color: colors.white },
-  avatarSection: { alignItems: 'center', paddingVertical: spacing.xl, gap: spacing.md },
+  avatarSection: { alignItems: 'center', paddingVertical: spacing.xl, gap: spacing.sm },
   avatar: {
     width: 80, height: 80, borderRadius: 40,
     backgroundColor: colors.primary,
     alignItems: 'center', justifyContent: 'center',
   },
   avatarText: { fontFamily: font.bold, fontSize: 28, color: colors.white },
-  userName: { fontFamily: font.bold, fontSize: 20, color: colors.white },
+  name: { fontFamily: font.bold, fontSize: 20, color: colors.white },
   section: {
     marginHorizontal: spacing.md,
     backgroundColor: colors.surface,
@@ -97,18 +105,29 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     overflow: 'hidden',
   },
-  row: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, gap: spacing.md },
-  rowInfo: { flex: 1 },
-  rowLabel: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: 14,
+    gap: spacing.md,
+  },
+  iconWrap: {
+    width: 32, height: 32,
+    borderRadius: radius.sm,
+    backgroundColor: colors.primaryGlow,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  rowContent: { flex: 1 },
+  rowLabel: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary, marginBottom: 2 },
   rowValue: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
-  divider: { height: 1, backgroundColor: colors.border, marginLeft: 54 },
+  divider: { height: 1, backgroundColor: colors.border, marginLeft: spacing.md + 32 + spacing.md },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
     marginHorizontal: spacing.md,
-    marginTop: spacing.lg,
-    backgroundColor: colors.surface,
+    marginTop: spacing.md,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.error,
