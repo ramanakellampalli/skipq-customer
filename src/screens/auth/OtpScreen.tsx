@@ -48,7 +48,7 @@ export default function OtpScreen({ route, navigation }: any) {
     try {
       setLoading(true);
       const { data } = await api.auth.verifyOtp(email, code);
-      await setAuth(data.token, data.userId, data.name, data.email);
+      await setAuth(data.token);
     } catch (err: any) {
       Alert.alert('Invalid OTP', err.response?.data?.message || 'Code is incorrect or expired');
       setOtp(Array(OTP_LENGTH).fill(''));

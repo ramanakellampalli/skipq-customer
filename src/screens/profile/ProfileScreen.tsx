@@ -8,12 +8,12 @@ import { hasSavedCredentials } from '../../utils/biometrics';
 import { colors, font, radius, spacing } from '../../theme';
 
 export default function ProfileScreen() {
-  const { name, email, logout } = useAuthStore();
-  const { reset, campusName } = useStudentStore();
+  const { logout } = useAuthStore();
+  const { profile, reset } = useStudentStore();
   const { clear } = useCartStore();
 
-  const initials = name
-    ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  const initials = profile?.name
+    ? profile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : '?';
 
   const handleLogout = async () => {
@@ -48,7 +48,7 @@ export default function ProfileScreen() {
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{initials}</Text>
         </View>
-        <Text style={styles.userName}>{name ?? '—'}</Text>
+        <Text style={styles.userName}>{profile?.name ?? '—'}</Text>
       </View>
 
       <View style={styles.section}>
@@ -56,7 +56,7 @@ export default function ProfileScreen() {
           <User size={18} color={colors.textSecondary} />
           <View style={styles.rowInfo}>
             <Text style={styles.rowLabel}>Name</Text>
-            <Text style={styles.rowValue}>{name ?? '—'}</Text>
+            <Text style={styles.rowValue}>{profile?.name ?? '—'}</Text>
           </View>
         </View>
         <View style={styles.divider} />
@@ -64,17 +64,17 @@ export default function ProfileScreen() {
           <Mail size={18} color={colors.textSecondary} />
           <View style={styles.rowInfo}>
             <Text style={styles.rowLabel}>Email</Text>
-            <Text style={styles.rowValue}>{email ?? '—'}</Text>
+            <Text style={styles.rowValue}>{profile?.email ?? '—'}</Text>
           </View>
         </View>
-        {campusName && (
+        {profile?.campusName && (
           <>
             <View style={styles.divider} />
             <View style={styles.row}>
               <MapPin size={18} color={colors.textSecondary} />
               <View style={styles.rowInfo}>
                 <Text style={styles.rowLabel}>Campus</Text>
-                <Text style={styles.rowValue}>{campusName}</Text>
+                <Text style={styles.rowValue}>{profile.campusName}</Text>
               </View>
             </View>
           </>

@@ -6,7 +6,6 @@ import {
 import { Fingerprint } from 'lucide-react-native';
 import { api } from '../../api';
 import { useAuthStore } from '../../store/authStore';
-import { useStudentStore } from '../../store/studentStore';
 import { colors, font, radius, spacing } from '../../theme';
 import {
   isBiometricAvailable, getBiometricLabel, promptBiometric,
@@ -19,7 +18,6 @@ export default function LoginScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
   const [biometricLabel, setBiometricLabel] = useState<string | null>(null);
   const { setAuth } = useAuthStore();
-  const { setSync } = useStudentStore();
 
   useEffect(() => {
     (async () => {
@@ -48,9 +46,7 @@ export default function LoginScreen({ navigation }: any) {
 
   const doLogin = async (loginEmail: string, loginPassword: string) => {
     const { data } = await api.auth.login(loginEmail, loginPassword);
-    await setAuth(data.token, data.userId, data.name, data.email);
-    const sync = await api.student.sync();
-    setSync(sync.data);
+    await setAuth(data.token);
   };
 
   const handleLogin = async () => {

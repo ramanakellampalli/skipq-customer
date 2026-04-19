@@ -1,27 +1,40 @@
 import { create } from 'zustand';
 import { Vendor, Order } from '../types';
 
+export interface StudentProfile {
+  id: string;
+  name: string;
+  email: string;
+  campusId: string | null;
+  campusName: string | null;
+}
+
 interface StudentState {
+  profile: StudentProfile | null;
   vendors: Vendor[];
   activeOrder: Order | null;
   pastOrders: Order[];
-  campusName: string | null;
   isSynced: boolean;
-  setSync: (data: { vendors: Vendor[]; activeOrder: Order | null; pastOrders: Order[]; campusName?: string }) => void;
+  setSync: (data: {
+    profile: StudentProfile;
+    vendors: Vendor[];
+    activeOrder: Order | null;
+    pastOrders: Order[];
+  }) => void;
   setActiveOrder: (order: Order) => void;
   completeActiveOrder: () => void;
   reset: () => void;
 }
 
 export const useStudentStore = create<StudentState>(set => ({
+  profile: null,
   vendors: [],
   activeOrder: null,
   pastOrders: [],
-  campusName: null,
   isSynced: false,
 
-  setSync: ({ vendors, activeOrder, pastOrders, campusName }) =>
-    set({ vendors, activeOrder, pastOrders, campusName: campusName ?? null, isSynced: true }),
+  setSync: ({ profile, vendors, activeOrder, pastOrders }) =>
+    set({ profile, vendors, activeOrder, pastOrders, isSynced: true }),
 
   setActiveOrder: order =>
     set(state => {
@@ -44,5 +57,5 @@ export const useStudentStore = create<StudentState>(set => ({
     })),
 
   reset: () =>
-    set({ vendors: [], activeOrder: null, pastOrders: [], campusName: null, isSynced: false }),
+    set({ profile: null, vendors: [], activeOrder: null, pastOrders: [], isSynced: false }),
 }));

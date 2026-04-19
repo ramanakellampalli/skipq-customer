@@ -1,11 +1,12 @@
 import { client } from './client';
 import { Vendor, MenuItem, Order } from '../types';
+import { StudentProfile } from '../store/studentStore';
 
 export interface StudentSyncResponse {
+  profile: StudentProfile;
   vendors: Vendor[];
   activeOrder: Order | null;
   pastOrders: Order[];
-  campusName?: string;
 }
 
 export const api = {

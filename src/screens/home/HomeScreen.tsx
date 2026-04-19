@@ -8,15 +8,13 @@ import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
 import { Vendor } from '../../types';
 import { useStudentStore } from '../../store/studentStore';
-import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import Skeleton from '../../components/Skeleton';
 
 export default function HomeScreen({ navigation }: any) {
   const vendors = useStudentStore(state => state.vendors);
-  const campusName = useStudentStore(state => state.campusName);
+  const profile = useStudentStore(state => state.profile);
   const setSync = useStudentStore(state => state.setSync);
-  const name = useAuthStore(state => state.name);
   const cartVendorId = useCartStore(state => state.vendorId);
   const cartCount = useCartStore(state => state.itemCount());
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -96,10 +94,10 @@ export default function HomeScreen({ navigation }: any) {
     <View style={styles.header}>
       <View style={styles.locationRow}>
         <MapPin size={14} color={colors.primary} />
-        <Text style={styles.locationText}>{campusName ?? 'Campus'}</Text>
+        <Text style={styles.locationText}>{profile?.campusName ?? 'Campus'}</Text>
       </View>
       <Text style={styles.greeting}>{greeting()},</Text>
-      <Text style={styles.userName}>{name?.split(' ')[0] ?? 'there'} 👋</Text>
+      <Text style={styles.userName}>{profile?.name?.split(' ')[0] ?? 'there'} 👋</Text>
 
       {!isInitialLoad && openVendors.length > 0 && (
         <View style={styles.sectionLabel}>

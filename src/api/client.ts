@@ -20,9 +20,11 @@ client.interceptors.response.use(
   async err => {
     const isAuthCall = AUTH_ENDPOINTS.some(e => err.config?.url?.includes(e));
     if (err.response?.status === 401 && !isAuthCall) {
-      await AsyncStorage.multiRemove(['token', 'userId', 'name', 'email']);
+      await AsyncStorage.removeItem('token');
       const { useAuthStore } = await import('../store/authStore');
-      useAuthStore.setState({ token: null, userId: null, name: null, email: null });
+      const { useStudentStore } = await import('../store/studentStore');
+      useAuthStore.setState({ token: null });
+      useStudentStore.getState().reset();
     }
     return Promise.reject(err);
   },
