@@ -3,7 +3,7 @@ import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   StatusBar, RefreshControl,
 } from 'react-native';
-import { MapPin, Clock, ShoppingBag } from 'lucide-react-native';
+import { MapPin, Clock, ShoppingCart } from 'lucide-react-native';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
 import { Vendor } from '../../types';
@@ -60,9 +60,11 @@ export default function HomeScreen({ navigation }: any) {
               )}
             </View>
             {hasCart && (
-              <View style={styles.cartBadge}>
-                <ShoppingBag size={18} color={colors.primary} />
-                <Text style={styles.cartBadgeText}>{cartCount}</Text>
+              <View style={styles.cartIconWrap}>
+                <ShoppingCart size={22} color={colors.primary} />
+                <View style={styles.cartCountBubble}>
+                  <Text style={styles.cartCountText}>{cartCount}</Text>
+                </View>
               </View>
             )}
           </View>
@@ -180,18 +182,19 @@ const styles = StyleSheet.create({
   cardClosed: { opacity: 0.5 },
   cardGradient: { padding: spacing.md, minHeight: 90, justifyContent: 'center' },
   cardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  cartBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primaryGlow,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
+  cartIconWrap: { position: 'relative', padding: 4 },
+  cartCountBubble: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: colors.primary,
+    borderRadius: radius.full,
+    width: 16,
+    height: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
   },
-  cartBadgeText: { fontFamily: font.bold, fontSize: 13, color: colors.primary },
+  cartCountText: { fontFamily: font.bold, fontSize: 10, color: colors.white },
   cardBottom: { gap: 4 },
   vendorName: { fontFamily: font.bold, fontSize: 18, color: colors.white },
   textDimmed: { color: colors.textSecondary },
