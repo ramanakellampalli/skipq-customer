@@ -3,18 +3,21 @@ import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   StatusBar, RefreshControl,
 } from 'react-native';
-import { MapPin, Clock } from 'lucide-react-native';
+import { MapPin, Clock, ShoppingBag } from 'lucide-react-native';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
 import { Vendor } from '../../types';
 import { useStudentStore } from '../../store/studentStore';
 import { useAuthStore } from '../../store/authStore';
+import { useCartStore } from '../../store/cartStore';
 import Skeleton from '../../components/Skeleton';
 
 export default function HomeScreen({ navigation }: any) {
   const vendors = useStudentStore(state => state.vendors);
   const setSync = useStudentStore(state => state.setSync);
   const name = useAuthStore(state => state.name);
+  const cartVendorId = useCartStore(state => state.vendorId);
+  const cartCount = useCartStore(state => state.itemCount());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(vendors.length === 0);
 
@@ -37,12 +40,19 @@ export default function HomeScreen({ navigation }: any) {
 
   const renderVendor = ({ item }: { item: Vendor }) => {
     const isOpen = item.isOpen;
+    const hasCart = cartVendorId === item.id && cartCount > 0;
     return (
       <TouchableOpacity
         style={[styles.card, !isOpen && styles.cardClosed]}
         onPress={() => isOpen && navigation.navigate('VendorMenu', { vendor: item })}
         activeOpacity={isOpen ? 0.75 : 1}>
         <View style={styles.cardGradient}>
+          {hasCart && (
+            <View style={styles.cartBadge}>
+              <ShoppingBag size={12} color={colors.white} />
+              <Text style={styles.cartBadgeText}>{cartCount} in cart</Text>
+            </View>
+          )}
           <View style={styles.cardBottom}>
             <Text style={[styles.vendorName, !isOpen && styles.textDimmed]} numberOfLines={1}>
               {item.name}
@@ -167,6 +177,18 @@ const styles = StyleSheet.create({
   },
   cardClosed: { opacity: 0.5 },
   cardGradient: { padding: spacing.md, minHeight: 90 },
+  cartBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+    backgroundColor: colors.primary,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    marginBottom: spacing.sm,
+  },
+  cartBadgeText: { fontFamily: font.semiBold, fontSize: 12, color: colors.white },
   cardBottom: { gap: 4 },
   vendorName: { fontFamily: font.bold, fontSize: 18, color: colors.white },
   textDimmed: { color: colors.textSecondary },
