@@ -1,50 +1,57 @@
-# SkipQ — Student App
+<p align="center">
+  <h1 align="center">⚡ SkipQ — Student App</h1>
+  <p align="center">Skip the queue. Order ahead at your campus.</p>
+</p>
 
-> Skip the queue. Order ahead at your campus.
+<p align="center">
+  <img src="https://img.shields.io/badge/React_Native-0.78-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
+  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/Zustand-state-764ABC?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-brightgreen?style=for-the-badge" />
+</p>
 
-The student-facing mobile app for SkipQ. Browse campus vendors, place orders, and track them in real time — all before you even leave your seat.
+---
 
-Built with **React Native** (bare workflow), targeting Android and iOS.
+## What is SkipQ?
+
+SkipQ lets university students **order food ahead** from campus vendors — before they even leave the classroom. No queuing, no waiting, just pick up when it's ready.
+
+This is the **student-facing mobile app**.
 
 ---
 
 ## Features
 
-- **Browse vendors** — see which stalls are open on your campus right now
-- **Order ahead** — pick items, place your order, skip the wait
-- **Live tracking** — real-time order status updates from the vendor
-- **Order history** — view past orders with full pricing breakdown
-- **Biometric login** — Face ID / fingerprint for returning users
-- **Campus-based access** — your college email ties you to your campus automatically
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Framework | React Native 0.78 (bare workflow) |
-| Language | TypeScript |
-| State | Zustand |
-| Navigation | React Navigation (bottom tabs + stack) |
-| API | Axios + react-native-config (env-based URL) |
-| Auth | JWT + AsyncStorage + Keychain (biometrics) |
+| | |
+|---|---|
+| 🏫 **Campus-aware** | Your college email ties you to your campus automatically |
+| 🛒 **Order ahead** | Browse open vendors, build a cart, place your order |
+| 📡 **Live tracking** | Real-time order status — accepted, preparing, ready |
+| 🧾 **Order history** | Full receipt with GST and fee breakdown |
+| 🔐 **Biometric login** | Face ID / fingerprint after your first sign-in |
 
 ---
 
 ## Auth Flow
 
 ```
-Register
-  → name + email + password
-  → OTP sent to college email (one-time verification)
-  → Enter 6-digit code
-  → Into the app ✓
+  ┌─ REGISTER ──────────────────────────────────────────┐
+  │                                                      │
+  │  Name + Campus Email + Password                      │
+  │              ↓                                       │
+  │  OTP sent to email  →  Enter 6-digit code            │
+  │              ↓                                       │
+  │          Into the app ✓                              │
+  └──────────────────────────────────────────────────────┘
 
-Login
-  → email + password
-  → Into the app ✓  (biometric available after first login)
+  ┌─ LOGIN ─────────────────────────────────────────────┐
+  │                                                      │
+  │  Email + Password  →  Into the app ✓                 │
+  │  (or biometric after first login)                    │
+  └──────────────────────────────────────────────────────┘
 ```
+
+> OTP is a **one-time email verification** on registration only — not required on every login.
 
 Students must use their campus-affiliated email (e.g. `@srmap.edu.in`). Non-campus emails are rejected at registration.
 
@@ -55,8 +62,8 @@ Students must use their campus-affiliated email (e.g. `@srmap.edu.in`). Non-camp
 ### Prerequisites
 
 - Node 22+
-- For iOS: Xcode + CocoaPods
-- For Android: Android Studio + JDK 21 + connected device or emulator
+- **iOS:** Xcode + CocoaPods
+- **Android:** Android Studio + JDK 21 + emulator or physical device
 
 ### Install
 
@@ -71,24 +78,22 @@ bundle exec pod install --project-directory=ios
 
 ### Environment
 
-Create a `.env` file in the project root (gitignored):
+Create `.env` in the project root (gitignored):
 
 ```env
 API_URL=https://skipq-core-dev-obh3j3jqpa-el.a.run.app
 ```
 
-Point to the dev backend for local testing. Never commit this file.
-
 ### Run
 
 ```bash
-# Start Metro bundler
+# Start Metro
 npx react-native start
 
-# Android (in a separate terminal)
+# Android
 npx react-native run-android
 
-# iOS (in a separate terminal)
+# iOS
 npx react-native run-ios
 ```
 
@@ -96,19 +101,19 @@ npx react-native run-ios
 
 ## Dev Testing
 
-Use the **dev backend** and these test credentials to validate the full flow without a real campus email.
+Use the **dev backend** — no real campus email required.
 
-### Register a new student
+### ✅ Register a new student
 
-1. Open the app → **Create Account**
-2. Use any `@test.skipq.dev` email (e.g. `alice@test.skipq.dev`)
+1. Open app → **Create Account**
+2. Use any `@test.skipq.dev` email — e.g. `alice@test.skipq.dev`
 3. Set any password (min 8 characters)
-4. On the OTP screen, enter **`123456`**
-5. You're in
+4. On the OTP screen → enter **`123456`**
+5. You're in 🎉
 
-### Login
+### ✅ Login
 
-Use the email and password you registered with. Biometric login is available after the first successful sign-in.
+Use the email and password from registration. Biometric login becomes available after your first successful sign-in.
 
 ---
 
@@ -119,13 +124,13 @@ src/
 ├── api/            # Axios client + typed API calls
 ├── navigation/     # Bottom tab + auth stack navigators
 ├── screens/
-│   ├── auth/       # LandingScreen, LoginScreen, RegisterScreen, OtpScreen
-│   ├── home/       # HomeScreen (vendor list), VendorMenuScreen
-│   ├── orders/     # OrdersScreen, OrderTrackingScreen
-│   └── profile/    # ProfileScreen
-├── store/          # Zustand: authStore, studentStore, cartStore
-├── theme/          # Colors, typography, spacing, radius
-├── types/          # Shared TypeScript types (Order, Vendor, MenuItem)
+│   ├── auth/       # Landing, Login, Register, OTP verify
+│   ├── home/       # Vendor list, vendor menu
+│   ├── orders/     # Order list, order tracking
+│   └── profile/    # Profile + logout
+├── store/          # Zustand: auth, student data, cart
+├── theme/          # Colors, typography, spacing
+├── types/          # Shared TypeScript types
 └── utils/          # Biometrics helper
 ```
 
@@ -135,6 +140,6 @@ src/
 
 | Variable | Description |
 |----------|-------------|
-| `API_URL` | Backend base URL (dev or prod) |
+| `API_URL` | Backend base URL |
 
-Managed via `react-native-config`. Values in `.env` are injected at build time.
+Managed via `react-native-config`. Set in `.env` — injected at build time.
