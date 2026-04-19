@@ -9,10 +9,12 @@ export interface StudentSyncResponse {
 
 export const api = {
   auth: {
-    login: (email: string, password: string) =>
-      client.post('/api/v1/auth/login', { email, password }),
     register: (name: string, email: string, password: string) =>
-      client.post('/api/v1/auth/register', { name, email, password }),
+      client.post<{ message: string }>('/api/v1/auth/register', { name, email, password }),
+    login: (email: string, password: string) =>
+      client.post<{ token: string; userId: string; name: string; email: string }>('/api/v1/auth/login', { email, password }),
+    verifyOtp: (email: string, otp: string) =>
+      client.post<{ token: string; userId: string; name: string; email: string }>('/api/v1/auth/verify-otp', { email, otp }),
   },
 
   student: {
