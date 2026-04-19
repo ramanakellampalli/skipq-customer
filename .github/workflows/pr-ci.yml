@@ -45,6 +45,19 @@ jobs:
           echo "API_URL=http://localhost:8080" > .env
           echo "ABLY_API_KEY=ci_placeholder" >> .env
 
+      - name: Write gradle.properties
+        run: |
+          cat > android/gradle.properties << 'EOF'
+          org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=512m
+          org.gradle.parallel=true
+          org.gradle.caching=true
+          android.useAndroidX=true
+          reactNativeArchitectures=arm64-v8a
+          newArchEnabled=true
+          hermesEnabled=true
+          edgeToEdgeEnabled=false
+          EOF
+
       - name: Build Android debug
         working-directory: android
         run: ./gradlew assembleDebug --no-daemon
