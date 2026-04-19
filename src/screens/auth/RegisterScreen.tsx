@@ -29,7 +29,7 @@ export default function RegisterScreen({ navigation }: any) {
     try {
       setLoading(true);
       await api.auth.register(name.trim(), email.trim(), password);
-      navigation.navigate('Otp', { email: email.trim() });
+      navigation.navigate('Otp', { email: email.trim(), name: name.trim(), password });
     } catch (err: any) {
       Alert.alert('Registration Failed', err.response?.data?.message || 'Something went wrong');
     } finally {

@@ -5,6 +5,7 @@ export interface StudentSyncResponse {
   vendors: Vendor[];
   activeOrder: Order | null;
   pastOrders: Order[];
+  campusName?: string;
 }
 
 export const api = {

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   StatusBar, RefreshControl,
@@ -9,6 +9,15 @@ import { colors, font, radius, spacing } from '../../theme';
 import { Order } from '../../types';
 import { useStudentStore } from '../../store/studentStore';
 import { timeAgo } from '../../utils/time';
+
+type Filter = 'today' | 'yesterday' | 'week' | 'all';
+
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: 'today', label: 'Today' },
+  { key: 'yesterday', label: 'Yesterday' },
+  { key: 'week', label: '7 days' },
+  { key: 'all', label: 'All' },
+];
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING:   'Pending',
@@ -28,11 +37,33 @@ const STATUS_COLOR: Record<string, string> = {
   REJECTED:  colors.error,
 };
 
+function startOf(date: Date): number {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+}
+
+function applyFilter(orders: Order[], filter: Filter): Order[] {
+  const now = new Date();
+  const todayStart = startOf(now);
+  const yesterdayStart = todayStart - 86400000;
+  const weekStart = todayStart - 6 * 86400000;
+
+  return orders.filter(o => {
+    const t = new Date(o.timeline.createdAt).getTime();
+    if (filter === 'today') return t >= todayStart;
+    if (filter === 'yesterday') return t >= yesterdayStart && t < todayStart;
+    if (filter === 'week') return t >= weekStart;
+    return true;
+  });
+}
+
 export default function OrdersScreen({ navigation }: any) {
   const activeOrder = useStudentStore(state => state.activeOrder);
   const pastOrders = useStudentStore(state => state.pastOrders);
   const setSync = useStudentStore(state => state.setSync);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<Filter>('all');
+
+  const filtered = useMemo(() => applyFilter(pastOrders, activeFilter), [pastOrders, activeFilter]);
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -63,15 +94,17 @@ export default function OrdersScreen({ navigation }: any) {
     </View>
   );
 
+  const hasPastOrders = pastOrders.length > 0;
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.background} />
 
       <FlatList
-        data={pastOrders}
+        data={filtered}
         keyExtractor={item => item.id}
         renderItem={renderPastOrder}
-        contentContainerStyle={pastOrders.length === 0 && !activeOrder ? styles.emptyContainer : styles.list}
+        contentContainerStyle={filtered.length === 0 && !activeOrder ? styles.emptyContainer : styles.list}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
@@ -107,10 +140,24 @@ export default function OrdersScreen({ navigation }: any) {
               </TouchableOpacity>
             )}
 
-            {pastOrders.length > 0 && (
-              <View style={styles.sectionRow}>
-                <Text style={styles.sectionLabel}>Past Orders</Text>
-              </View>
+            {hasPastOrders && (
+              <>
+                <View style={styles.sectionRow}>
+                  <Text style={styles.sectionLabel}>Past Orders</Text>
+                </View>
+                <View style={styles.filterRow}>
+                  {FILTERS.map(f => (
+                    <TouchableOpacity
+                      key={f.key}
+                      style={[styles.pill, activeFilter === f.key && styles.pillActive]}
+                      onPress={() => setActiveFilter(f.key)}>
+                      <Text style={[styles.pillText, activeFilter === f.key && styles.pillTextActive]}>
+                        {f.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
             )}
           </View>
         }
@@ -118,8 +165,12 @@ export default function OrdersScreen({ navigation }: any) {
           !activeOrder ? (
             <View style={styles.empty}>
               <ClipboardList size={56} color={colors.border} />
-              <Text style={styles.emptyTitle}>No orders yet</Text>
-              <Text style={styles.emptySubtitle}>Find a vendor and place your first order</Text>
+              <Text style={styles.emptyTitle}>
+                {hasPastOrders ? 'No orders in this range' : 'No orders yet'}
+              </Text>
+              <Text style={styles.emptySubtitle}>
+                {hasPastOrders ? 'Try a different date filter' : 'Find a vendor and place your first order'}
+              </Text>
             </View>
           ) : null
         }
@@ -153,8 +204,26 @@ const styles = StyleSheet.create({
   activeFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
   activeStatus: { fontFamily: font.semiBold, fontSize: 13 },
   activeTotal: { fontFamily: font.bold, fontSize: 15, color: colors.white },
-  sectionRow: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  sectionRow: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.xs },
   sectionLabel: { fontFamily: font.semiBold, fontSize: 12, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  filterRow: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  pill: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+  },
+  pillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  pillText: { fontFamily: font.semiBold, fontSize: 12, color: colors.textSecondary },
+  pillTextActive: { color: colors.white },
   pastCard: {
     marginHorizontal: spacing.md,
     marginBottom: spacing.sm,

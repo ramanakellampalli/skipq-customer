@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert } from 'react-native';
-import { LogOut, User, Mail } from 'lucide-react-native';
+import { LogOut, User, Mail, MapPin } from 'lucide-react-native';
 import { useAuthStore } from '../../store/authStore';
 import { useStudentStore } from '../../store/studentStore';
 import { useCartStore } from '../../store/cartStore';
@@ -9,7 +9,7 @@ import { colors, font, radius, spacing } from '../../theme';
 
 export default function ProfileScreen() {
   const { name, email, logout } = useAuthStore();
-  const { reset } = useStudentStore();
+  const { reset, campusName } = useStudentStore();
   const { clear } = useCartStore();
 
   const initials = name
@@ -67,6 +67,18 @@ export default function ProfileScreen() {
             <Text style={styles.rowValue}>{email ?? '—'}</Text>
           </View>
         </View>
+        {campusName && (
+          <>
+            <View style={styles.divider} />
+            <View style={styles.row}>
+              <MapPin size={18} color={colors.textSecondary} />
+              <View style={styles.rowInfo}>
+                <Text style={styles.rowLabel}>Campus</Text>
+                <Text style={styles.rowValue}>{campusName}</Text>
+              </View>
+            </View>
+          </>
+        )}
       </View>
 
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>

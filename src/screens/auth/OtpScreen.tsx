@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ActivityIndicator, KeyboardAvoidingView, Platform, Alert, StatusBar,
@@ -9,14 +9,23 @@ import { useStudentStore } from '../../store/studentStore';
 import { colors, font, radius, spacing } from '../../theme';
 
 const OTP_LENGTH = 6;
+const RESEND_COOLDOWN = 60;
 
 export default function OtpScreen({ route, navigation }: any) {
-  const { email } = route.params as { email: string };
+  const { email, name, password } = route.params as { email: string; name: string; password: string };
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''));
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [countdown, setCountdown] = useState(RESEND_COOLDOWN);
   const inputs = useRef<(TextInput | null)[]>([]);
   const { setAuth } = useAuthStore();
   const { setSync } = useStudentStore();
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const t = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown]);
 
   const handleChange = (text: string, index: number) => {
     const digit = text.replace(/[^0-9]/g, '').slice(-1);
@@ -54,7 +63,19 @@ export default function OtpScreen({ route, navigation }: any) {
   };
 
   const handleResend = async () => {
-    Alert.alert('Resend OTP', 'Please go back and register again to get a new code.');
+    if (countdown > 0 || resending) return;
+    try {
+      setResending(true);
+      await api.auth.register(name, email, password);
+      setCountdown(RESEND_COOLDOWN);
+      setOtp(Array(OTP_LENGTH).fill(''));
+      inputs.current[0]?.focus();
+      Alert.alert('Code sent', 'A new OTP has been sent to ' + email);
+    } catch (err: any) {
+      Alert.alert('Could not resend', err.response?.data?.message || 'Please go back and try again');
+    } finally {
+      setResending(false);
+    }
   };
 
   const handleVerifyPress = () => {
@@ -112,12 +133,19 @@ export default function OtpScreen({ route, navigation }: any) {
           }
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={handleResend} style={styles.resendBtn}>
-          <Text style={styles.resendText}>
-            {"Didn't receive it? "}
-            <Text style={styles.resendLink}>Go back</Text>
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.resendRow}>
+          <Text style={styles.resendText}>{"Didn't receive it? "}</Text>
+          {countdown > 0 ? (
+            <Text style={styles.resendCountdown}>Resend in {countdown}s</Text>
+          ) : (
+            <TouchableOpacity onPress={handleResend} disabled={resending}>
+              {resending
+                ? <ActivityIndicator size="small" color={colors.primary} />
+                : <Text style={styles.resendLink}>Resend code</Text>
+              }
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -150,9 +178,7 @@ const styles = StyleSheet.create({
     fontFamily: font.bold,
     color: colors.white,
   },
-  otpBoxFilled: {
-    borderColor: colors.primary,
-  },
+  otpBoxFilled: { borderColor: colors.primary },
   btn: {
     backgroundColor: colors.primary,
     borderRadius: radius.lg,
@@ -162,7 +188,8 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.5 },
   btnText: { fontFamily: font.bold, fontSize: 16, color: colors.white },
-  resendBtn: { alignItems: 'center' },
+  resendRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   resendText: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary },
-  resendLink: { fontFamily: font.semiBold, color: colors.primary },
+  resendCountdown: { fontFamily: font.semiBold, fontSize: 14, color: colors.textSecondary },
+  resendLink: { fontFamily: font.semiBold, fontSize: 14, color: colors.primary },
 });

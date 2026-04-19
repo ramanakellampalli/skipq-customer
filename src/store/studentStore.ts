@@ -5,8 +5,9 @@ interface StudentState {
   vendors: Vendor[];
   activeOrder: Order | null;
   pastOrders: Order[];
+  campusName: string | null;
   isSynced: boolean;
-  setSync: (data: { vendors: Vendor[]; activeOrder: Order | null; pastOrders: Order[] }) => void;
+  setSync: (data: { vendors: Vendor[]; activeOrder: Order | null; pastOrders: Order[]; campusName?: string }) => void;
   setActiveOrder: (order: Order) => void;
   completeActiveOrder: () => void;
   reset: () => void;
@@ -16,10 +17,11 @@ export const useStudentStore = create<StudentState>(set => ({
   vendors: [],
   activeOrder: null,
   pastOrders: [],
+  campusName: null,
   isSynced: false,
 
-  setSync: ({ vendors, activeOrder, pastOrders }) =>
-    set({ vendors, activeOrder, pastOrders, isSynced: true }),
+  setSync: ({ vendors, activeOrder, pastOrders, campusName }) =>
+    set({ vendors, activeOrder, pastOrders, campusName: campusName ?? null, isSynced: true }),
 
   setActiveOrder: order =>
     set(state => {
@@ -42,5 +44,5 @@ export const useStudentStore = create<StudentState>(set => ({
     })),
 
   reset: () =>
-    set({ vendors: [], activeOrder: null, pastOrders: [], isSynced: false }),
+    set({ vendors: [], activeOrder: null, pastOrders: [], campusName: null, isSynced: false }),
 }));
