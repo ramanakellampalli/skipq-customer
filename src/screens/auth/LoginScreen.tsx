@@ -28,7 +28,6 @@ export default function LoginScreen({ navigation }: any) {
       if (available && hasCreds) {
         const label = await getBiometricLabel();
         setBiometricLabel(label);
-        // auto-prompt on screen open
         try {
           const success = await promptBiometric(`Sign in to SkipQ with ${label}`);
           if (success) {
@@ -39,7 +38,7 @@ export default function LoginScreen({ navigation }: any) {
             }
           }
         } catch {
-          // user cancelled or biometric failed — fall through to manual login
+          // user cancelled — fall through to manual login
         } finally {
           setLoading(false);
         }
@@ -71,17 +70,13 @@ export default function LoginScreen({ navigation }: any) {
           `Sign in faster next time using ${label}.`,
           [
             { text: 'Not Now', style: 'cancel' },
-            {
-              text: 'Enable',
-              onPress: async () => {
-                await saveCredentials(email.trim(), password);
-              },
-            },
+            { text: 'Enable', onPress: async () => { await saveCredentials(email.trim(), password); } },
           ],
         );
       }
     } catch (err: any) {
-      Alert.alert('Login Failed', err.response?.data?.message || 'Invalid email or password');
+      const msg = err.response?.data?.message || 'Invalid email or password';
+      Alert.alert('Login Failed', msg);
     } finally {
       setLoading(false);
     }
@@ -223,12 +218,7 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.7 },
   btnText: { fontFamily: font.bold, fontSize: 16, color: colors.white },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginVertical: spacing.xs,
-  },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginVertical: spacing.xs },
   dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
   dividerText: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
   biometricBtn: {

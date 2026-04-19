@@ -1,97 +1,140 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# SkipQ — Student App
 
-# Getting Started
+> Skip the queue. Order ahead at your campus.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+The student-facing mobile app for SkipQ. Browse campus vendors, place orders, and track them in real time — all before you even leave your seat.
 
-## Step 1: Start Metro
+Built with **React Native** (bare workflow), targeting Android and iOS.
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+---
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## Features
 
-```sh
-# Using npm
-npm start
+- **Browse vendors** — see which stalls are open on your campus right now
+- **Order ahead** — pick items, place your order, skip the wait
+- **Live tracking** — real-time order status updates from the vendor
+- **Order history** — view past orders with full pricing breakdown
+- **Biometric login** — Face ID / fingerprint for returning users
+- **Campus-based access** — your college email ties you to your campus automatically
 
-# OR using Yarn
-yarn start
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | React Native 0.78 (bare workflow) |
+| Language | TypeScript |
+| State | Zustand |
+| Navigation | React Navigation (bottom tabs + stack) |
+| API | Axios + react-native-config (env-based URL) |
+| Auth | JWT + AsyncStorage + Keychain (biometrics) |
+
+---
+
+## Auth Flow
+
+```
+Register
+  → name + email + password
+  → OTP sent to college email (one-time verification)
+  → Enter 6-digit code
+  → Into the app ✓
+
+Login
+  → email + password
+  → Into the app ✓  (biometric available after first login)
 ```
 
-## Step 2: Build and run your app
+Students must use their campus-affiliated email (e.g. `@srmap.edu.in`). Non-campus emails are rejected at registration.
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+---
 
-### Android
+## Getting Started
 
-```sh
-# Using npm
-npm run android
+### Prerequisites
 
-# OR using Yarn
-yarn android
+- Node 22+
+- For iOS: Xcode + CocoaPods
+- For Android: Android Studio + JDK 21 + connected device or emulator
+
+### Install
+
+```bash
+git clone https://github.com/ramanakellampalli/skipq-customer.git
+cd skipq-customer
+npm install
+
+# iOS only
+bundle exec pod install --project-directory=ios
 ```
 
-### iOS
+### Environment
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+Create a `.env` file in the project root (gitignored):
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
+```env
+API_URL=https://skipq-core-dev-obh3j3jqpa-el.a.run.app
 ```
 
-Then, and every time you update your native dependencies, run:
+Point to the dev backend for local testing. Never commit this file.
 
-```sh
-bundle exec pod install
+### Run
+
+```bash
+# Start Metro bundler
+npx react-native start
+
+# Android (in a separate terminal)
+npx react-native run-android
+
+# iOS (in a separate terminal)
+npx react-native run-ios
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+---
 
-```sh
-# Using npm
-npm run ios
+## Dev Testing
 
-# OR using Yarn
-yarn ios
+Use the **dev backend** and these test credentials to validate the full flow without a real campus email.
+
+### Register a new student
+
+1. Open the app → **Create Account**
+2. Use any `@test.skipq.dev` email (e.g. `alice@test.skipq.dev`)
+3. Set any password (min 8 characters)
+4. On the OTP screen, enter **`123456`**
+5. You're in
+
+### Login
+
+Use the email and password you registered with. Biometric login is available after the first successful sign-in.
+
+---
+
+## Project Structure
+
+```
+src/
+├── api/            # Axios client + typed API calls
+├── navigation/     # Bottom tab + auth stack navigators
+├── screens/
+│   ├── auth/       # LandingScreen, LoginScreen, RegisterScreen, OtpScreen
+│   ├── home/       # HomeScreen (vendor list), VendorMenuScreen
+│   ├── orders/     # OrdersScreen, OrderTrackingScreen
+│   └── profile/    # ProfileScreen
+├── store/          # Zustand: authStore, studentStore, cartStore
+├── theme/          # Colors, typography, spacing, radius
+├── types/          # Shared TypeScript types (Order, Vendor, MenuItem)
+└── utils/          # Biometrics helper
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+---
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## Environment Variables
 
-## Step 3: Modify your app
+| Variable | Description |
+|----------|-------------|
+| `API_URL` | Backend base URL (dev or prod) |
 
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+Managed via `react-native-config`. Values in `.env` are injected at build time.

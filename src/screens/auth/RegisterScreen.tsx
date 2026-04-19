@@ -4,8 +4,6 @@ import {
   ActivityIndicator, KeyboardAvoidingView, Platform, Alert, ScrollView, StatusBar,
 } from 'react-native';
 import { api } from '../../api';
-import { useAuthStore } from '../../store/authStore';
-import { useStudentStore } from '../../store/studentStore';
 import { colors, font, radius, spacing } from '../../theme';
 
 export default function RegisterScreen({ navigation }: any) {
@@ -14,8 +12,6 @@ export default function RegisterScreen({ navigation }: any) {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
-  const { setAuth } = useAuthStore();
-  const { setSync } = useStudentStore();
 
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !password) {
@@ -32,10 +28,8 @@ export default function RegisterScreen({ navigation }: any) {
     }
     try {
       setLoading(true);
-      const { data } = await api.auth.register(name.trim(), email.trim(), password);
-      await setAuth(data.token, data.userId, data.name, data.email);
-      const sync = await api.student.sync();
-      setSync(sync.data);
+      await api.auth.register(name.trim(), email.trim(), password);
+      navigation.navigate('Otp', { email: email.trim() });
     } catch (err: any) {
       Alert.alert('Registration Failed', err.response?.data?.message || 'Something went wrong');
     } finally {
@@ -61,7 +55,7 @@ export default function RegisterScreen({ navigation }: any) {
         <View style={styles.form}>
           {[
             { label: 'Full Name', value: name, onChange: setName, placeholder: 'John Doe', secure: false, keyboard: 'default' as const, capitalize: 'words' as const },
-            { label: 'Email', value: email, onChange: setEmail, placeholder: 'you@college.edu', secure: false, keyboard: 'email-address' as const, capitalize: 'none' as const },
+            { label: 'College Email', value: email, onChange: setEmail, placeholder: 'you@college.edu', secure: false, keyboard: 'email-address' as const, capitalize: 'none' as const },
             { label: 'Password', value: password, onChange: setPassword, placeholder: 'Min 8 characters', secure: true, keyboard: 'default' as const, capitalize: 'none' as const },
             { label: 'Confirm Password', value: confirm, onChange: setConfirm, placeholder: 'Re-enter password', secure: true, keyboard: 'default' as const, capitalize: 'none' as const },
           ].map(f => (
