@@ -125,11 +125,14 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
                 <Text style={styles.pricingValue}>₹{total.toFixed(2)}</Text>
               </View>
 
-              {/* Tax — always shown */}
+              {/* Tax */}
               <View style={styles.pricingRow}>
                 <Text style={styles.pricingLabel}>Tax</Text>
                 <Text style={styles.pricingValue}>₹{totalTax.toFixed(2)}</Text>
               </View>
+              {!gstRegistered ? (
+                <Text style={styles.taxNote}>Vendor is not GST registered — no tax applicable</Text>
+              ) : (
               <View style={styles.accordionBody}>
                 <View style={styles.pricingRow}>
                   <Text style={styles.subLabel}>CGST (2.5%)</Text>
@@ -146,6 +149,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
                   </View>
                 )}
               </View>
+              )}
 
               {/* Service fee accordion */}
               <TouchableOpacity style={styles.accordionRow} onPress={() => setFeeOpen(o => !o)} activeOpacity={0.7}>
@@ -265,6 +269,7 @@ const styles = StyleSheet.create({
   pricingLabel: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary },
   pricingValue: { fontFamily: font.medium, fontSize: 14, color: colors.textSecondary },
   subLabel: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary, opacity: 0.75 },
+  taxNote: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary, opacity: 0.7, paddingLeft: 20, fontStyle: 'italic' },
   subValue: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary, opacity: 0.75 },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.xs },
   totalLabel: { fontFamily: font.semiBold, fontSize: 15, color: colors.white },
