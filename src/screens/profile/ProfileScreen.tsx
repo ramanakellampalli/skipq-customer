@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   label: { fontFamily: font.regular, fontSize: 15, color: colors.textSecondary },
-  value: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary, maxWidth: '65%', textAlign: 'right' },
+  value: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
   divider: { height: 1, backgroundColor: colors.border },
   logoutBtn: {
     flexDirection: 'row',
