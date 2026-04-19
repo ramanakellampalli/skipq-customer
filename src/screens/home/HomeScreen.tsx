@@ -3,7 +3,7 @@ import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   StatusBar, RefreshControl,
 } from 'react-native';
-import { MapPin, Clock, ChevronRight } from 'lucide-react-native';
+import { MapPin, Clock } from 'lucide-react-native';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
 import { Vendor } from '../../types';
@@ -43,16 +43,6 @@ export default function HomeScreen({ navigation }: any) {
         onPress={() => isOpen && navigation.navigate('VendorMenu', { vendor: item })}
         activeOpacity={isOpen ? 0.75 : 1}>
         <View style={styles.cardGradient}>
-          <View style={styles.cardTop}>
-            <View style={[styles.badge, isOpen ? styles.badgeOpen : styles.badgeClosed]}>
-              <View style={[styles.dot, { backgroundColor: isOpen ? colors.success : colors.textSecondary }]} />
-              <Text style={[styles.badgeText, { color: isOpen ? colors.success : colors.textSecondary }]}>
-                {isOpen ? 'Open' : 'Closed'}
-              </Text>
-            </View>
-            {isOpen && <ChevronRight size={18} color={colors.textSecondary} />}
-          </View>
-
           <View style={styles.cardBottom}>
             <Text style={[styles.vendorName, !isOpen && styles.textDimmed]} numberOfLines={1}>
               {item.name}
@@ -72,9 +62,6 @@ export default function HomeScreen({ navigation }: any) {
   const SkeletonCard = () => (
     <View style={[styles.card, { marginBottom: spacing.sm }]}>
       <View style={styles.cardGradient}>
-        <View style={styles.cardTop}>
-          <Skeleton width={64} height={22} borderRadius={radius.full} />
-        </View>
         <View style={styles.cardBottom}>
           <Skeleton width="55%" height={20} />
           <Skeleton width={80} height={13} style={{ marginTop: 6 }} />
@@ -179,20 +166,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cardClosed: { opacity: 0.5 },
-  cardGradient: { padding: spacing.md, minHeight: 110 },
-  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: radius.full,
-  },
-  badgeOpen: { backgroundColor: 'rgba(16,185,129,0.12)' },
-  badgeClosed: { backgroundColor: colors.surfaceHigh },
-  dot: { width: 6, height: 6, borderRadius: 3 },
-  badgeText: { fontFamily: font.semiBold, fontSize: 12 },
+  cardGradient: { padding: spacing.md, minHeight: 90 },
   cardBottom: { gap: 4 },
   vendorName: { fontFamily: font.bold, fontSize: 18, color: colors.white },
   textDimmed: { color: colors.textSecondary },
