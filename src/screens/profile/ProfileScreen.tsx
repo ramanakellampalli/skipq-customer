@@ -59,7 +59,10 @@ export default function ProfileScreen() {
         <View style={styles.divider} />
         <View style={styles.emailRow}>
           <Mail size={18} color={colors.textSecondary} />
-          <Text style={styles.rowValue} numberOfLines={1}>{profile?.email ?? '—'}</Text>
+          <View>
+            <Text style={styles.rowLabel}>Email</Text>
+            <Text style={styles.rowValue} numberOfLines={1}>{profile?.email ?? '—'}</Text>
+          </View>
         </View>
         {profile?.campusName && (
           <>
