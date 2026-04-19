@@ -1,109 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ActivityIndicator, KeyboardAvoidingView, Platform, Alert, ScrollView, StatusBar,
 } from 'react-native';
-import { Fingerprint } from 'lucide-react-native';
 import { api } from '../../api';
-import { useAuthStore } from '../../store/authStore';
-import { useStudentStore } from '../../store/studentStore';
 import { colors, font, radius, spacing } from '../../theme';
-import {
-  isBiometricAvailable, getBiometricLabel, promptBiometric,
-  saveCredentials, getCredentials, hasSavedCredentials,
-} from '../../utils/biometrics';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [biometricLabel, setBiometricLabel] = useState<string | null>(null);
-  const { setAuth } = useAuthStore();
-  const { setSync } = useStudentStore();
-
-  useEffect(() => {
-    (async () => {
-      const available = await isBiometricAvailable();
-      const hasCreds = await hasSavedCredentials();
-      if (available && hasCreds) {
-        const label = await getBiometricLabel();
-        setBiometricLabel(label);
-        // auto-prompt on screen open
-        try {
-          const success = await promptBiometric(`Sign in to SkipQ with ${label}`);
-          if (success) {
-            const creds = await getCredentials();
-            if (creds) {
-              setLoading(true);
-              await doLogin(creds.email, creds.password);
-            }
-          }
-        } catch {
-          // user cancelled or biometric failed — fall through to manual login
-        } finally {
-          setLoading(false);
-        }
-      }
-    })();
-  }, []);
-
-  const doLogin = async (loginEmail: string, loginPassword: string) => {
-    const { data } = await api.auth.login(loginEmail, loginPassword);
-    await setAuth(data.token, data.userId, data.name, data.email);
-    const sync = await api.student.sync();
-    setSync(sync.data);
-  };
 
   const handleLogin = async () => {
-    if (!email.trim() || !password) {
-      Alert.alert('Missing fields', 'Please enter your email and password');
+    if (!email.trim()) {
+      Alert.alert('Missing email', 'Please enter your college email');
       return;
     }
     try {
       setLoading(true);
-      await doLogin(email.trim(), password);
-
-      const available = await isBiometricAvailable();
-      if (available) {
-        const label = await getBiometricLabel();
-        Alert.alert(
-          `Enable ${label} Login?`,
-          `Sign in faster next time using ${label}.`,
-          [
-            { text: 'Not Now', style: 'cancel' },
-            {
-              text: 'Enable',
-              onPress: async () => {
-                await saveCredentials(email.trim(), password);
-              },
-            },
-          ],
-        );
-      }
+      await api.auth.login(email.trim());
+      navigation.navigate('Otp', { email: email.trim(), mode: 'login' });
     } catch (err: any) {
-      Alert.alert('Login Failed', err.response?.data?.message || 'Invalid email or password');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleBiometricLogin = async () => {
-    try {
-      const label = biometricLabel ?? 'Biometrics';
-      const success = await promptBiometric(`Sign in to SkipQ with ${label}`);
-      if (!success) return;
-
-      const creds = await getCredentials();
-      if (!creds) {
-        Alert.alert('Setup required', 'Please sign in with your password first.');
-        setBiometricLabel(null);
-        return;
-      }
-
-      setLoading(true);
-      await doLogin(creds.email, creds.password);
-    } catch (err: any) {
-      Alert.alert('Login Failed', err.response?.data?.message || 'Could not sign in. Try your password.');
+      Alert.alert('Login Failed', err.response?.data?.message || 'Could not send OTP');
     } finally {
       setLoading(false);
     }
@@ -121,12 +38,12 @@ export default function LoginScreen({ navigation }: any) {
 
         <View style={styles.header}>
           <Text style={styles.title}>Welcome back</Text>
-          <Text style={styles.subtitle}>Sign in to continue ordering</Text>
+          <Text style={styles.subtitle}>Enter your college email to receive a one-time code</Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.field}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>College Email</Text>
             <TextInput
               style={styles.input}
               value={email}
@@ -136,19 +53,7 @@ export default function LoginScreen({ navigation }: any) {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="••••••••"
-              placeholderTextColor={colors.textSecondary}
-              secureTextEntry
-              autoCapitalize="none"
+              autoFocus
             />
           </View>
 
@@ -159,27 +64,9 @@ export default function LoginScreen({ navigation }: any) {
             activeOpacity={0.85}>
             {loading
               ? <ActivityIndicator color={colors.white} />
-              : <Text style={styles.btnText}>Sign In</Text>
+              : <Text style={styles.btnText}>Send OTP</Text>
             }
           </TouchableOpacity>
-
-          {biometricLabel && !loading && (
-            <>
-              <View style={styles.dividerRow}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>or</Text>
-                <View style={styles.dividerLine} />
-              </View>
-
-              <TouchableOpacity
-                style={styles.biometricBtn}
-                onPress={handleBiometricLogin}
-                activeOpacity={0.85}>
-                <Fingerprint size={20} color={colors.primary} />
-                <Text style={styles.biometricText}>Sign in with {biometricLabel}</Text>
-              </TouchableOpacity>
-            </>
-          )}
         </View>
 
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
@@ -199,7 +86,7 @@ const styles = StyleSheet.create({
   backText: { fontFamily: font.medium, fontSize: 15, color: colors.textSecondary },
   header: { marginBottom: spacing.xl },
   title: { fontFamily: font.bold, fontSize: 28, color: colors.white, marginBottom: 6 },
-  subtitle: { fontFamily: font.regular, fontSize: 15, color: colors.textSecondary },
+  subtitle: { fontFamily: font.regular, fontSize: 15, color: colors.textSecondary, lineHeight: 22 },
   form: { gap: spacing.md, marginBottom: spacing.xl },
   field: { gap: spacing.xs },
   label: { fontFamily: font.semiBold, fontSize: 13, color: colors.textSecondary },
@@ -223,26 +110,6 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.7 },
   btnText: { fontFamily: font.bold, fontSize: 16, color: colors.white },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginVertical: spacing.xs,
-  },
-  dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
-  dividerText: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
-  biometricBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    paddingVertical: 16,
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  biometricText: { fontFamily: font.semiBold, fontSize: 15, color: colors.primary },
   switchText: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
   switchLink: { fontFamily: font.semiBold, color: colors.primary },
 });
