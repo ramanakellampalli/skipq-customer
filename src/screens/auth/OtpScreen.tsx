@@ -113,7 +113,6 @@ export default function OtpScreen({ route, navigation }: any) {
               keyboardType="number-pad"
               maxLength={1}
               selectTextOnFocus
-              caretHidden
             />
           ))}
         </View>
@@ -170,6 +169,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surface,
     textAlign: 'center',
+    textAlignVertical: 'center',
+    paddingVertical: 0,
     fontSize: 22,
     fontFamily: font.bold,
     color: colors.white,
