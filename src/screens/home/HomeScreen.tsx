@@ -47,20 +47,22 @@ export default function HomeScreen({ navigation }: any) {
         onPress={() => isOpen && navigation.navigate('VendorMenu', { vendor: item })}
         activeOpacity={isOpen ? 0.75 : 1}>
         <View style={styles.cardGradient}>
-          {hasCart && (
-            <View style={styles.cartBadge}>
-              <ShoppingBag size={12} color={colors.white} />
-              <Text style={styles.cartBadgeText}>{cartCount} in cart</Text>
+          <View style={styles.cardRow}>
+            <View style={styles.cardBottom}>
+              <Text style={[styles.vendorName, !isOpen && styles.textDimmed]} numberOfLines={1}>
+                {item.name}
+              </Text>
+              {isOpen && (
+                <View style={styles.metaRow}>
+                  <Clock size={13} color={colors.textSecondary} />
+                  <Text style={styles.metaText}>~{item.prepTime} min</Text>
+                </View>
+              )}
             </View>
-          )}
-          <View style={styles.cardBottom}>
-            <Text style={[styles.vendorName, !isOpen && styles.textDimmed]} numberOfLines={1}>
-              {item.name}
-            </Text>
-            {isOpen && (
-              <View style={styles.metaRow}>
-                <Clock size={13} color={colors.textSecondary} />
-                <Text style={styles.metaText}>~{item.prepTime} min</Text>
+            {hasCart && (
+              <View style={styles.cartBadge}>
+                <ShoppingBag size={14} color={colors.primary} />
+                <Text style={styles.cartBadgeText}>{cartCount}</Text>
               </View>
             )}
           </View>
@@ -176,19 +178,20 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cardClosed: { opacity: 0.5 },
-  cardGradient: { padding: spacing.md, minHeight: 90 },
+  cardGradient: { padding: spacing.md, minHeight: 90, justifyContent: 'center' },
+  cardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   cartBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primaryGlow,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    padding: spacing.sm,
     gap: 4,
-    alignSelf: 'flex-start',
-    backgroundColor: colors.primary,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    marginBottom: spacing.sm,
+    minWidth: 48,
   },
-  cartBadgeText: { fontFamily: font.semiBold, fontSize: 12, color: colors.white },
+  cartBadgeText: { fontFamily: font.bold, fontSize: 14, color: colors.primary },
   cardBottom: { gap: 4 },
   vendorName: { fontFamily: font.bold, fontSize: 18, color: colors.white },
   textDimmed: { color: colors.textSecondary },
