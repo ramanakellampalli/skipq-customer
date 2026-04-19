@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert } from 'react-native';
-import { LogOut, MapPin, Mail, User } from 'lucide-react-native';
+import { LogOut, MapPin, Mail } from 'lucide-react-native';
 import { useAuthStore } from '../../store/authStore';
 import { useStudentStore } from '../../store/studentStore';
 import { useCartStore } from '../../store/cartStore';
@@ -38,39 +38,20 @@ export default function ProfileScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.background} />
 
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Profile</Text>
       </View>
 
-      {/* Avatar card */}
-      <View style={styles.avatarCard}>
+      {/* Avatar + Name */}
+      <View style={styles.avatarSection}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{initials}</Text>
         </View>
-        <View>
-          <Text style={styles.avatarName}>{profile?.name ?? '—'}</Text>
-          {profile?.campusName && (
-            <View style={styles.campusRow}>
-              <MapPin size={12} color={colors.primary} />
-              <Text style={styles.campusText}>{profile.campusName}</Text>
-            </View>
-          )}
-        </View>
+        <Text style={styles.name}>{profile?.name ?? '—'}</Text>
       </View>
 
-      {/* Info rows */}
+      {/* Email + Campus */}
       <View style={styles.section}>
-        <View style={styles.row}>
-          <View style={styles.iconWrap}>
-            <User size={16} color={colors.primary} />
-          </View>
-          <View style={styles.rowContent}>
-            <Text style={styles.rowLabel}>Name</Text>
-            <Text style={styles.rowValue}>{profile?.name ?? '—'}</Text>
-          </View>
-        </View>
-        <View style={styles.divider} />
         <View style={styles.row}>
           <View style={styles.iconWrap}>
             <Mail size={16} color={colors.primary} />
@@ -96,7 +77,6 @@ export default function ProfileScreen() {
         )}
       </View>
 
-      {/* Logout */}
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
         <LogOut size={18} color={colors.error} />
         <Text style={styles.logoutText}>Log Out</Text>
@@ -107,39 +87,16 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-
-  header: {
-    paddingHorizontal: spacing.md,
-    paddingTop: 56,
-    paddingBottom: spacing.md,
-  },
+  header: { paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md },
   title: { fontFamily: font.bold, fontSize: 22, color: colors.white },
-
-  avatarCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginHorizontal: spacing.md,
-    marginBottom: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
+  avatarSection: { alignItems: 'center', paddingVertical: spacing.xl, gap: spacing.sm },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 80, height: 80, borderRadius: 40,
     backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
   },
-  avatarText: { fontFamily: font.bold, fontSize: 24, color: colors.white },
-  avatarName: { fontFamily: font.bold, fontSize: 17, color: colors.white, marginBottom: 4 },
-  campusRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  campusText: { fontFamily: font.medium, fontSize: 12, color: colors.primary },
-
+  avatarText: { fontFamily: font.bold, fontSize: 28, color: colors.white },
+  name: { fontFamily: font.bold, fontSize: 20, color: colors.white },
   section: {
     marginHorizontal: spacing.md,
     backgroundColor: colors.surface,
@@ -156,18 +113,15 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   iconWrap: {
-    width: 32,
-    height: 32,
+    width: 32, height: 32,
     borderRadius: radius.sm,
     backgroundColor: colors.primaryGlow,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
   },
   rowContent: { flex: 1 },
   rowLabel: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary, marginBottom: 2 },
   rowValue: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
   divider: { height: 1, backgroundColor: colors.border, marginLeft: spacing.md + 32 + spacing.md },
-
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
