@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert } from 'react-native';
-import { LogOut } from 'lucide-react-native';
+import { LogOut, Mail } from 'lucide-react-native';
 import { useAuthStore } from '../../store/authStore';
 import { useStudentStore } from '../../store/studentStore';
 import { useCartStore } from '../../store/cartStore';
@@ -57,8 +57,8 @@ export default function ProfileScreen() {
           <Text style={styles.rowValue}>{profile?.name ?? '—'}</Text>
         </View>
         <View style={styles.divider} />
-        <View style={styles.row}>
-          <Text style={styles.rowLabel}>Email</Text>
+        <View style={styles.emailRow}>
+          <Mail size={18} color={colors.textSecondary} />
           <Text style={styles.rowValue} numberOfLines={1}>{profile?.email ?? '—'}</Text>
         </View>
         {profile?.campusName && (
@@ -101,6 +101,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.md, paddingVertical: 14 },
+  emailRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.md, paddingVertical: 14 },
   rowLabel: { fontFamily: font.regular, fontSize: 15, color: colors.textSecondary },
   rowValue: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary, maxWidth: '60%' },
   divider: { height: 1, backgroundColor: colors.border },
