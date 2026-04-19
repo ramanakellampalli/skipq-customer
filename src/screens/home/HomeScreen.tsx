@@ -61,7 +61,7 @@ export default function HomeScreen({ navigation }: any) {
             </View>
             {hasCart && (
               <View style={styles.cartBadge}>
-                <ShoppingBag size={14} color={colors.primary} />
+                <ShoppingBag size={18} color={colors.primary} />
                 <Text style={styles.cartBadgeText}>{cartCount}</Text>
               </View>
             )}
@@ -181,17 +181,17 @@ const styles = StyleSheet.create({
   cardGradient: { padding: spacing.md, minHeight: 90, justifyContent: 'center' },
   cardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   cartBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primaryGlow,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primaryGlow,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    padding: spacing.sm,
-    gap: 4,
-    minWidth: 48,
+    gap: 2,
   },
-  cartBadgeText: { fontFamily: font.bold, fontSize: 14, color: colors.primary },
+  cartBadgeText: { fontFamily: font.bold, fontSize: 13, color: colors.primary },
   cardBottom: { gap: 4 },
   vendorName: { fontFamily: font.bold, fontSize: 18, color: colors.white },
   textDimmed: { color: colors.textSecondary },
