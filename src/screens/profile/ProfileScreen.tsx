@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert } from 'react-native';
-import { LogOut, User, Mail, MapPin } from 'lucide-react-native';
+import { LogOut, Mail } from 'lucide-react-native';
 import { useAuthStore } from '../../store/authStore';
 import { useStudentStore } from '../../store/studentStore';
 import { useCartStore } from '../../store/cartStore';
@@ -53,11 +53,8 @@ export default function ProfileScreen() {
 
       <View style={styles.section}>
         <View style={styles.row}>
-          <User size={18} color={colors.textSecondary} />
-          <View style={styles.rowInfo}>
-            <Text style={styles.rowLabel}>Name</Text>
-            <Text style={styles.rowValue}>{profile?.name ?? '—'}</Text>
-          </View>
+          <Text style={styles.rowLabel}>Name</Text>
+          <Text style={styles.rowValue}>{profile?.name ?? '—'}</Text>
         </View>
         <View style={styles.divider} />
         <View style={styles.row}>
@@ -71,11 +68,8 @@ export default function ProfileScreen() {
           <>
             <View style={styles.divider} />
             <View style={styles.row}>
-              <MapPin size={18} color={colors.textSecondary} />
-              <View style={styles.rowInfo}>
-                <Text style={styles.rowLabel}>Campus</Text>
-                <Text style={styles.rowValue}>{profile.campusName}</Text>
-              </View>
+              <Text style={styles.rowLabel}>Campus</Text>
+              <Text style={styles.rowValue}>{profile.campusName}</Text>
             </View>
           </>
         )}
@@ -109,11 +103,11 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     overflow: 'hidden',
   },
-  row: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, gap: spacing.md },
-  rowInfo: { flex: 1 },
-  rowLabel: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.md, gap: spacing.md },
+  rowInfo: { flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  rowLabel: { fontFamily: font.regular, fontSize: 15, color: colors.textSecondary },
   rowValue: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
-  divider: { height: 1, backgroundColor: colors.border, marginLeft: 54 },
+  divider: { height: 1, backgroundColor: colors.border },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
