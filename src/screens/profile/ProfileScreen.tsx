@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert } from 'react-native';
-import { LogOut, Mail } from 'lucide-react-native';
+import { LogOut } from 'lucide-react-native';
 import { useAuthStore } from '../../store/authStore';
 import { useStudentStore } from '../../store/studentStore';
 import { useCartStore } from '../../store/cartStore';
@@ -53,23 +53,20 @@ export default function ProfileScreen() {
 
       <View style={styles.section}>
         <View style={styles.row}>
-          <Text style={styles.rowLabel}>Name</Text>
-          <Text style={styles.rowValue}>{profile?.name ?? '—'}</Text>
+          <Text style={styles.label}>Name</Text>
+          <Text style={styles.value}>{profile?.name ?? '—'}</Text>
         </View>
         <View style={styles.divider} />
-        <View style={styles.emailRow}>
-          <Mail size={18} color={colors.textSecondary} />
-          <View>
-            <Text style={styles.rowLabel}>Email</Text>
-            <Text style={styles.rowValue} numberOfLines={1}>{profile?.email ?? '—'}</Text>
-          </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Email</Text>
+          <Text style={styles.value} numberOfLines={1}>{profile?.email ?? '—'}</Text>
         </View>
         {profile?.campusName && (
           <>
             <View style={styles.divider} />
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>Campus</Text>
-              <Text style={styles.rowValue}>{profile.campusName}</Text>
+              <Text style={styles.label}>Campus</Text>
+              <Text style={styles.value}>{profile.campusName}</Text>
             </View>
           </>
         )}
@@ -103,10 +100,15 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     overflow: 'hidden',
   },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.md, paddingVertical: 14 },
-  emailRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.md, paddingVertical: 14 },
-  rowLabel: { fontFamily: font.regular, fontSize: 15, color: colors.textSecondary },
-  rowValue: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary, maxWidth: '60%' },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: 14,
+  },
+  label: { fontFamily: font.regular, fontSize: 15, color: colors.textSecondary },
+  value: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary, maxWidth: '65%', textAlign: 'right' },
   divider: { height: 1, backgroundColor: colors.border },
   logoutBtn: {
     flexDirection: 'row',
