@@ -3,18 +3,21 @@ import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   StatusBar, RefreshControl,
 } from 'react-native';
-import { MapPin, Clock, ChevronRight } from 'lucide-react-native';
+import { MapPin, Clock, ShoppingCart } from 'lucide-react-native';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
 import { Vendor } from '../../types';
 import { useStudentStore } from '../../store/studentStore';
 import { useAuthStore } from '../../store/authStore';
+import { useCartStore } from '../../store/cartStore';
 import Skeleton from '../../components/Skeleton';
 
 export default function HomeScreen({ navigation }: any) {
   const vendors = useStudentStore(state => state.vendors);
   const setSync = useStudentStore(state => state.setSync);
   const name = useAuthStore(state => state.name);
+  const cartVendorId = useCartStore(state => state.vendorId);
+  const cartCount = useCartStore(state => state.itemCount());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(vendors.length === 0);
 
@@ -37,30 +40,31 @@ export default function HomeScreen({ navigation }: any) {
 
   const renderVendor = ({ item }: { item: Vendor }) => {
     const isOpen = item.isOpen;
+    const hasCart = cartVendorId === item.id && cartCount > 0;
     return (
       <TouchableOpacity
         style={[styles.card, !isOpen && styles.cardClosed]}
         onPress={() => isOpen && navigation.navigate('VendorMenu', { vendor: item })}
         activeOpacity={isOpen ? 0.75 : 1}>
         <View style={styles.cardGradient}>
-          <View style={styles.cardTop}>
-            <View style={[styles.badge, isOpen ? styles.badgeOpen : styles.badgeClosed]}>
-              <View style={[styles.dot, { backgroundColor: isOpen ? colors.success : colors.textSecondary }]} />
-              <Text style={[styles.badgeText, { color: isOpen ? colors.success : colors.textSecondary }]}>
-                {isOpen ? 'Open' : 'Closed'}
+          <View style={styles.cardRow}>
+            <View style={styles.cardBottom}>
+              <Text style={[styles.vendorName, !isOpen && styles.textDimmed]} numberOfLines={1}>
+                {item.name}
               </Text>
+              {isOpen && (
+                <View style={styles.metaRow}>
+                  <Clock size={13} color={colors.textSecondary} />
+                  <Text style={styles.metaText}>~{item.prepTime} min</Text>
+                </View>
+              )}
             </View>
-            {isOpen && <ChevronRight size={18} color={colors.textSecondary} />}
-          </View>
-
-          <View style={styles.cardBottom}>
-            <Text style={[styles.vendorName, !isOpen && styles.textDimmed]} numberOfLines={1}>
-              {item.name}
-            </Text>
-            {isOpen && (
-              <View style={styles.metaRow}>
-                <Clock size={13} color={colors.textSecondary} />
-                <Text style={styles.metaText}>~{item.prepTime} min</Text>
+            {hasCart && (
+              <View style={styles.cartIconWrap}>
+                <ShoppingCart size={22} color={colors.primary} />
+                <View style={styles.cartCountBubble}>
+                  <Text style={styles.cartCountText}>{cartCount}</Text>
+                </View>
               </View>
             )}
           </View>
@@ -72,9 +76,6 @@ export default function HomeScreen({ navigation }: any) {
   const SkeletonCard = () => (
     <View style={[styles.card, { marginBottom: spacing.sm }]}>
       <View style={styles.cardGradient}>
-        <View style={styles.cardTop}>
-          <Skeleton width={64} height={22} borderRadius={radius.full} />
-        </View>
         <View style={styles.cardBottom}>
           <Skeleton width="55%" height={20} />
           <Skeleton width={80} height={13} style={{ marginTop: 6 }} />
@@ -179,20 +180,21 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cardClosed: { opacity: 0.5 },
-  cardGradient: { padding: spacing.md, minHeight: 110 },
-  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+  cardGradient: { padding: spacing.md, minHeight: 90, justifyContent: 'center' },
+  cardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  cartIconWrap: { position: 'relative', padding: 4 },
+  cartCountBubble: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: colors.primary,
     borderRadius: radius.full,
+    width: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  badgeOpen: { backgroundColor: 'rgba(16,185,129,0.12)' },
-  badgeClosed: { backgroundColor: colors.surfaceHigh },
-  dot: { width: 6, height: 6, borderRadius: 3 },
-  badgeText: { fontFamily: font.semiBold, fontSize: 12 },
+  cartCountText: { fontFamily: font.bold, fontSize: 10, color: colors.white },
   cardBottom: { gap: 4 },
   vendorName: { fontFamily: font.bold, fontSize: 18, color: colors.white },
   textDimmed: { color: colors.textSecondary },

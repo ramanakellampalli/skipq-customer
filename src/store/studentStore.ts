@@ -23,7 +23,7 @@ export const useStudentStore = create<StudentState>(set => ({
 
   setActiveOrder: order =>
     set(state => {
-      const isPast = ['COMPLETED', 'REJECTED'].includes(order.status);
+      const isPast = ['COMPLETED', 'REJECTED'].includes(order.state.orderStatus);
       if (isPast) {
         return {
           activeOrder: null,

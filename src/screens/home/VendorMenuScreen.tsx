@@ -212,7 +212,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
             </View>
             <Text style={styles.cartBarLabel}>View Cart</Text>
           </View>
-          <Text style={styles.cartBarTotal}>₹{total.toFixed(2)}</Text>
+          <Text style={styles.cartBarTotal}>₹{(total * 1.05).toFixed(2)}</Text>
         </TouchableOpacity>
       </Animated.View>
 
@@ -224,6 +224,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
           navigation.navigate('Orders', { screen: 'OrderTracking', params: { orderId } });
         }}
         vendorId={vendor.id}
+        gstRegistered={vendor.gstRegistered ?? false}
       />
     </View>
   );

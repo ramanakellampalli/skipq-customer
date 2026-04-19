@@ -11,6 +11,7 @@ export interface Vendor {
   name: string;
   isOpen: boolean;
   prepTime: number;
+  gstRegistered: boolean;
 }
 
 export interface MenuItem {
@@ -31,14 +32,16 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
-  vendorId: string;
-  vendorName: string;
-  status: OrderStatus;
-  paymentStatus: 'PENDING' | 'PAID' | 'REFUNDED';
+  vendor: { id: string; name: string };
+  state: { orderStatus: OrderStatus; paymentStatus: 'PENDING' | 'PAID' | 'REFUNDED' };
+  pricing: {
+    subtotal: number;
+    tax: { cgst: number; sgst: number; igst: number; totalTax: number };
+    fees: { platformFee: number; paymentTerminalFee: number; totalServiceFee: number };
+    totalAmount: number;
+  };
+  timeline: { createdAt: string; estimatedReadyAt: string };
   items: OrderItem[];
-  totalAmount: number;
-  estimatedReadyAt: string;
-  createdAt: string;
 }
 
 export interface CartItem {

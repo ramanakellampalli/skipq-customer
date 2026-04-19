@@ -4,6 +4,7 @@ import { LogOut, User, Mail } from 'lucide-react-native';
 import { useAuthStore } from '../../store/authStore';
 import { useStudentStore } from '../../store/studentStore';
 import { useCartStore } from '../../store/cartStore';
+import { hasSavedCredentials } from '../../utils/biometrics';
 import { colors, font, radius, spacing } from '../../theme';
 
 export default function ProfileScreen() {
@@ -15,8 +16,13 @@ export default function ProfileScreen() {
     ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : '?';
 
-  const handleLogout = () => {
-    Alert.alert('Log out', 'Are you sure you want to log out?', [
+  const handleLogout = async () => {
+    const hasBiometrics = await hasSavedCredentials();
+    const message = hasBiometrics
+      ? 'You will be logged out. Use your fingerprint to sign back in quickly.'
+      : 'Are you sure you want to log out?';
+
+    Alert.alert('Log out', message, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Log Out',
