@@ -12,6 +12,8 @@ export interface Vendor {
   isOpen: boolean;
   prepTime: number;
   gstRegistered: boolean;
+  campusId?: string;
+  campusName?: string;
 }
 
 export interface MenuItem {
