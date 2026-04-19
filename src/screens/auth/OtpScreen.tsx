@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import { api } from '../../api';
 import { useAuthStore } from '../../store/authStore';
-import { useStudentStore } from '../../store/studentStore';
 import { colors, font, radius, spacing } from '../../theme';
 
 const OTP_LENGTH = 6;
@@ -19,7 +18,6 @@ export default function OtpScreen({ route, navigation }: any) {
   const [countdown, setCountdown] = useState(RESEND_COOLDOWN);
   const inputs = useRef<(TextInput | null)[]>([]);
   const { setAuth } = useAuthStore();
-  const { setSync } = useStudentStore();
 
   useEffect(() => {
     if (countdown <= 0) return;
@@ -51,8 +49,6 @@ export default function OtpScreen({ route, navigation }: any) {
       setLoading(true);
       const { data } = await api.auth.verifyOtp(email, code);
       await setAuth(data.token, data.userId, data.name, data.email);
-      const sync = await api.student.sync();
-      setSync(sync.data);
     } catch (err: any) {
       Alert.alert('Invalid OTP', err.response?.data?.message || 'Code is incorrect or expired');
       setOtp(Array(OTP_LENGTH).fill(''));
