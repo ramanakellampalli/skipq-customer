@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert } from 'react-native';
-import { LogOut, Mail } from 'lucide-react-native';
+import { LogOut } from 'lucide-react-native';
 import { useAuthStore } from '../../store/authStore';
 import { useStudentStore } from '../../store/studentStore';
 import { useCartStore } from '../../store/cartStore';
@@ -58,11 +58,8 @@ export default function ProfileScreen() {
         </View>
         <View style={styles.divider} />
         <View style={styles.row}>
-          <Mail size={18} color={colors.textSecondary} />
-          <View style={styles.rowInfo}>
-            <Text style={styles.rowLabel}>Email</Text>
-            <Text style={styles.rowValue}>{profile?.email ?? '—'}</Text>
-          </View>
+          <Text style={styles.rowLabel}>Email</Text>
+          <Text style={styles.rowValue} numberOfLines={1}>{profile?.email ?? '—'}</Text>
         </View>
         {profile?.campusName && (
           <>
@@ -103,10 +100,9 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     overflow: 'hidden',
   },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.md, gap: spacing.md },
-  rowInfo: { flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.md, paddingVertical: 14 },
   rowLabel: { fontFamily: font.regular, fontSize: 15, color: colors.textSecondary },
-  rowValue: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
+  rowValue: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary, maxWidth: '60%' },
   divider: { height: 1, backgroundColor: colors.border },
   logoutBtn: {
     flexDirection: 'row',
