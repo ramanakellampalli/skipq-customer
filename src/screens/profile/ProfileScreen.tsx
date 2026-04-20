@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert } from 'react-native';
-import { LogOut, MapPin, Mail } from 'lucide-react-native';
+import { LogOut, MapPin, Mail, Trash2 } from 'lucide-react-native';
 import { useAuthStore } from '../../store/authStore';
 import { useStudentStore } from '../../store/studentStore';
 import { useCartStore } from '../../store/cartStore';
+import { api } from '../../api';
 import { hasSavedCredentials } from '../../utils/biometrics';
 import { colors, font, radius, spacing } from '../../theme';
 
@@ -11,10 +12,38 @@ export default function ProfileScreen() {
   const { logout } = useAuthStore();
   const { profile, reset } = useStudentStore();
   const { clear } = useCartStore();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const initials = profile?.name
     ? profile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : '?';
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'This will permanently delete your account and all order history. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              await api.student.deleteAccount();
+              clear();
+              reset();
+              await logout();
+            } catch {
+              Alert.alert('Error', 'Failed to delete account. Please try again.');
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const handleLogout = async () => {
     const hasBiometrics = await hasSavedCredentials();
@@ -81,6 +110,11 @@ export default function ProfileScreen() {
         <LogOut size={18} color={colors.error} />
         <Text style={styles.logoutText}>Log Out</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount} activeOpacity={0.8} disabled={isDeleting}>
+        <Trash2 size={16} color={colors.textSecondary} />
+        <Text style={styles.deleteText}>{isDeleting ? 'Deleting…' : 'Delete Account'}</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -135,4 +169,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logoutText: { fontFamily: font.semiBold, fontSize: 15, color: colors.error },
+  deleteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    padding: spacing.md,
+    justifyContent: 'center',
+  },
+  deleteText: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
 });
