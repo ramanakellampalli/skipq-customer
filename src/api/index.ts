@@ -26,5 +26,7 @@ export const api = {
       client.get<MenuItem[]>(`/api/v1/student/menu/${vendorId}`),
     placeOrder: (vendorId: string, items: { menuItemId: string; quantity: number }[]) =>
       client.post<Order>('/api/v1/student/orders', { vendorId, items }),
+    deleteAccount: () =>
+      client.delete('/api/v1/student/account'),
   },
 };
