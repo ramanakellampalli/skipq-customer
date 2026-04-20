@@ -29,6 +29,7 @@ This is the **student-facing mobile app**.
 | 📡 **Live tracking** | Real-time order status — accepted, preparing, ready |
 | 🧾 **Order history** | Full receipt with GST and fee breakdown |
 | 🔐 **Biometric login** | Face ID / fingerprint after your first sign-in |
+| 🗑️ **Account deletion** | Permanently delete account and all data from Profile screen |
 
 ---
 
@@ -127,7 +128,7 @@ src/
 │   ├── auth/       # Landing, Login, Register, OTP verify
 │   ├── home/       # Vendor list, vendor menu
 │   ├── orders/     # Order list, order tracking
-│   └── profile/    # Profile + logout
+│   └── profile/    # Profile, logout, delete account
 ├── store/          # Zustand: auth, student data, cart
 ├── theme/          # Colors, typography, spacing
 ├── types/          # Shared TypeScript types
@@ -143,3 +144,11 @@ src/
 | `API_URL` | Backend base URL |
 
 Managed via `react-native-config`. Set in `.env` — injected at build time.
+
+---
+
+## Account Deletion
+
+Students can permanently delete their account from **Profile → Delete Account**. This removes all personal data, order history, and login credentials immediately.
+
+Web deletion page (required for Google Play Console): `https://ohyeahsaas.com/privacy/skipq/delete-account`
