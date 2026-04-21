@@ -16,17 +16,36 @@ export interface Vendor {
   campusName?: string;
 }
 
-export interface MenuItem {
+export interface MenuVariant {
   id: string;
-  vendorId: string;
-  name: string;
+  label?: string;
   price: number;
   isAvailable: boolean;
 }
 
+export interface MenuItem {
+  id: string;
+  categoryId?: string;
+  name: string;
+  description?: string;
+  isVeg: boolean;
+  isAvailable: boolean;
+  displayOrder: number;
+  variants: MenuVariant[];
+}
+
+export interface MenuCategory {
+  id: string;
+  name: string;
+  displayOrder: number;
+  items: MenuItem[];
+}
+
 export interface OrderItem {
   menuItemId: string;
+  variantId?: string;
   name: string;
+  variantLabel?: string;
   quantity: number;
   unitPrice: number;
   subtotal: number;
@@ -47,8 +66,10 @@ export interface Order {
 }
 
 export interface CartItem {
+  variantId: string;
   menuItemId: string;
   name: string;
+  variantLabel?: string;
   price: number;
   quantity: number;
 }
