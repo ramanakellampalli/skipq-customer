@@ -10,6 +10,7 @@ export const client = axios.create({
 client.interceptors.request.use(async config => {
   const token = await AsyncStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (config.url?.includes('/auth/register')) config.timeout = 30000;
   return config;
 });
 
