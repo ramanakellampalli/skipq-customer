@@ -1,35 +1,151 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity, StyleSheet,
-  StatusBar, Alert, RefreshControl, Vibration,
+  View, Text, SectionList, TouchableOpacity, StyleSheet,
+  StatusBar, Alert, RefreshControl, Vibration, Modal,
+  SafeAreaView, ScrollView,
 } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withSpring,
 } from 'react-native-reanimated';
-import { ArrowLeft, Plus, Minus, ShoppingCart } from 'lucide-react-native';
+import { ArrowLeft, Plus, Minus, ShoppingCart, X } from 'lucide-react-native';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
-import { MenuItem } from '../../types';
+import { MenuItem, MenuVariant, MenuCategory } from '../../types';
 import { useCartStore } from '../../store/cartStore';
 import CartSheet from '../../components/CartSheet';
 import Skeleton from '../../components/Skeleton';
 
 const CART_BAR_HEIGHT = 80;
 
+// ─── Variant picker sheet ─────────────────────────────────────────────────────
+
+interface VariantPickerProps {
+  item: MenuItem | null;
+  vendorId: string;
+  vendorName: string;
+  onClose: () => void;
+}
+
+function VariantPicker({ item, vendorId, vendorName, onClose }: VariantPickerProps) {
+  const addItem = useCartStore(s => s.addItem);
+  const cartItems = useCartStore(s => s.items);
+  const incrementItem = useCartStore(s => s.incrementItem);
+  const decrementItem = useCartStore(s => s.decrementItem);
+
+  if (!item) return null;
+
+  const getQty = (variantId: string) =>
+    cartItems.find(i => i.variantId === variantId)?.quantity ?? 0;
+
+  const handleAdd = (variant: MenuVariant) => {
+    const result = addItem(vendorId, vendorName, {
+      variantId: variant.id,
+      menuItemId: item.id,
+      name: item.name,
+      variantLabel: variant.label,
+      price: variant.price,
+    });
+
+    if (result === 'switch_required') {
+      Alert.alert(
+        'Start new cart?',
+        `Your cart has items from ${useCartStore.getState().vendorName}. Clear it to order from ${vendorName}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Clear & Switch',
+            style: 'destructive',
+            onPress: () => {
+              useCartStore.getState().clear();
+              addItem(vendorId, vendorName, {
+                variantId: variant.id,
+                menuItemId: item.id,
+                name: item.name,
+                variantLabel: variant.label,
+                price: variant.price,
+              });
+              Vibration.vibrate(40);
+            },
+          },
+        ],
+      );
+    } else {
+      Vibration.vibrate(40);
+    }
+  };
+
+  return (
+    <Modal visible={!!item} transparent animationType="slide">
+      <View style={pickerStyles.overlay}>
+        <View style={pickerStyles.sheet}>
+          <View style={pickerStyles.header}>
+            <View style={{ flex: 1 }}>
+              <View style={pickerStyles.titleRow}>
+                <View style={[pickerStyles.vegDot, { backgroundColor: item.isVeg ? colors.success : '#e53935' }]} />
+                <Text style={pickerStyles.itemName}>{item.name}</Text>
+              </View>
+              {item.description ? (
+                <Text style={pickerStyles.itemDesc}>{item.description}</Text>
+              ) : null}
+            </View>
+            <TouchableOpacity style={pickerStyles.closeBtn} onPress={onClose}>
+              <X size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView>
+            {item.variants.filter(v => v.isAvailable).map(variant => {
+              const qty = getQty(variant.id);
+              return (
+                <View key={variant.id} style={pickerStyles.variantRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={pickerStyles.variantLabel}>{variant.label || 'Regular'}</Text>
+                    <Text style={pickerStyles.variantPrice}>₹{variant.price.toFixed(2)}</Text>
+                  </View>
+                  {qty === 0 ? (
+                    <TouchableOpacity style={pickerStyles.addBtn} onPress={() => handleAdd(variant)}>
+                      <Plus size={16} color={colors.white} />
+                      <Text style={pickerStyles.addBtnText}>Add</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <View style={pickerStyles.qtyControl}>
+                      <TouchableOpacity style={pickerStyles.qtyBtn} onPress={() => decrementItem(variant.id)}>
+                        <Minus size={14} color={colors.primary} />
+                      </TouchableOpacity>
+                      <Text style={pickerStyles.qtyText}>{qty}</Text>
+                      <TouchableOpacity style={pickerStyles.qtyBtn} onPress={() => incrementItem(variant.id)}>
+                        <Plus size={14} color={colors.primary} />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// ─── Main screen ──────────────────────────────────────────────────────────────
+
 export default function VendorMenuScreen({ route, navigation }: any) {
   const { vendor } = route.params;
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<MenuCategory[]>([]);
+  const [uncategorized, setUncategorized] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [cartVisible, setCartVisible] = useState(false);
+  const [pickerItem, setPickerItem] = useState<MenuItem | null>(null);
 
-  const addItem = useCartStore(state => state.addItem);
-  const incrementItem = useCartStore(state => state.incrementItem);
-  const decrementItem = useCartStore(state => state.decrementItem);
-  const cartItems = useCartStore(state => state.items);
-  const itemCount = useCartStore(state => state.itemCount());
-  const total = useCartStore(state => state.total());
-  const cartVendorId = useCartStore(state => state.vendorId);
+  const addItem = useCartStore(s => s.addItem);
+  const incrementItem = useCartStore(s => s.incrementItem);
+  const decrementItem = useCartStore(s => s.decrementItem);
+  const cartItems = useCartStore(s => s.items);
+  const itemCount = useCartStore(s => s.itemCount());
+  const total = useCartStore(s => s.total());
+  const cartVendorId = useCartStore(s => s.vendorId);
 
   const cartBarY = useSharedValue(CART_BAR_HEIGHT + 40);
   const cartBarStyle = useAnimatedStyle(() => ({
@@ -39,16 +155,33 @@ export default function VendorMenuScreen({ route, navigation }: any) {
   const showCartBar = itemCount > 0 && cartVendorId === vendor.id;
 
   useEffect(() => {
-    cartBarY.value = withSpring(showCartBar ? 0 : CART_BAR_HEIGHT + 40, {
-      damping: 16,
-      stiffness: 160,
-    });
+    cartBarY.value = withSpring(showCartBar ? 0 : CART_BAR_HEIGHT + 40, { damping: 16, stiffness: 160 });
   }, [showCartBar]);
+
+  const parseMenuResponse = (data: MenuItem[]) => {
+    const categoryMap = new Map<string, MenuCategory>();
+    const uncat: MenuItem[] = [];
+
+    data.forEach(item => {
+      if (!item.categoryId) {
+        uncat.push(item);
+        return;
+      }
+      if (!categoryMap.has(item.categoryId)) {
+        categoryMap.set(item.categoryId, { id: item.categoryId, name: '', displayOrder: 0, items: [] });
+      }
+      categoryMap.get(item.categoryId)!.items.push(item);
+    });
+
+    return { categories: Array.from(categoryMap.values()), uncategorized: uncat };
+  };
 
   const fetchMenu = useCallback(async () => {
     try {
       const res = await api.student.getMenu(vendor.id);
-      setMenuItems(res.data);
+      const { categories: cats, uncategorized: uncat } = parseMenuResponse(res.data);
+      setCategories(cats);
+      setUncategorized(uncat);
     } finally {
       setLoading(false);
     }
@@ -60,46 +193,125 @@ export default function VendorMenuScreen({ route, navigation }: any) {
     setIsRefreshing(true);
     try {
       const res = await api.student.getMenu(vendor.id);
-      setMenuItems(res.data);
+      const { categories: cats, uncategorized: uncat } = parseMenuResponse(res.data);
+      setCategories(cats);
+      setUncategorized(uncat);
     } finally {
       setIsRefreshing(false);
     }
   }, [vendor.id]);
 
-  const getItemQty = (menuItemId: string) =>
-    cartItems.find(i => i.menuItemId === menuItemId)?.quantity ?? 0;
+  const getVariantQty = (variantId: string) =>
+    cartItems.find(i => i.variantId === variantId)?.quantity ?? 0;
 
-  const handleAdd = (item: MenuItem) => {
-    const result = addItem(vendor.id, vendor.name, {
-      menuItemId: item.id,
-      name: item.name,
-      price: item.price,
-    });
+  const getItemTotalQty = (item: MenuItem) =>
+    item.variants.reduce((sum, v) => sum + getVariantQty(v.id), 0);
 
-    if (result === 'added') {
-      Vibration.vibrate(40);
-    } else if (result === 'switch_required') {
-      Alert.alert(
-        'Start new cart?',
-        `Your cart has items from ${useCartStore.getState().vendorName}. Clear it to order from ${vendor.name}?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Clear & Switch',
-            style: 'destructive',
-            onPress: () => {
-              useCartStore.getState().clear();
-              addItem(vendor.id, vendor.name, { menuItemId: item.id, name: item.name, price: item.price });
-              Vibration.vibrate(40);
+  const handleTap = (item: MenuItem) => {
+    const available = item.variants.filter(v => v.isAvailable);
+    if (available.length === 0) return;
+
+    if (available.length === 1) {
+      const variant = available[0];
+      const result = addItem(vendor.id, vendor.name, {
+        variantId: variant.id,
+        menuItemId: item.id,
+        name: item.name,
+        variantLabel: variant.label,
+        price: variant.price,
+      });
+      if (result === 'added') {
+        Vibration.vibrate(40);
+      } else if (result === 'switch_required') {
+        Alert.alert(
+          'Start new cart?',
+          `Your cart has items from ${useCartStore.getState().vendorName}. Clear it to order from ${vendor.name}?`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Clear & Switch',
+              style: 'destructive',
+              onPress: () => {
+                useCartStore.getState().clear();
+                addItem(vendor.id, vendor.name, {
+                  variantId: variant.id,
+                  menuItemId: item.id,
+                  name: item.name,
+                  variantLabel: variant.label,
+                  price: variant.price,
+                });
+                Vibration.vibrate(40);
+              },
             },
-          },
-        ],
-      );
+          ],
+        );
+      }
+    } else {
+      setPickerItem(item);
     }
   };
 
-  const availableItems = menuItems.filter(i => i.isAvailable);
-  const unavailableItems = menuItems.filter(i => !i.isAvailable);
+  const priceRange = (item: MenuItem) => {
+    const prices = item.variants.filter(v => v.isAvailable).map(v => v.price);
+    if (!prices.length) return '';
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    return min === max ? `₹${min.toFixed(2)}` : `₹${min.toFixed(2)} – ₹${max.toFixed(2)}`;
+  };
+
+  const renderMenuItem = (item: MenuItem) => {
+    const unavailable = !item.isAvailable || item.variants.every(v => !v.isAvailable);
+    const totalQty = getItemTotalQty(item);
+    const hasMultiVariant = item.variants.filter(v => v.isAvailable).length > 1;
+
+    return (
+      <View key={item.id} style={[styles.itemCard, unavailable && styles.itemUnavailable]}>
+        <View style={styles.itemInfo}>
+          <View style={styles.itemTitleRow}>
+            <View style={[styles.vegDot, { backgroundColor: item.isVeg ? colors.success : '#e53935' }]} />
+            <Text style={[styles.itemName, unavailable && styles.textDimmed]}>{item.name}</Text>
+          </View>
+          {item.description ? (
+            <Text style={[styles.itemDesc, unavailable && styles.textDimmed]} numberOfLines={2}>
+              {item.description}
+            </Text>
+          ) : null}
+          <Text style={[styles.itemPrice, unavailable && styles.textDimmed]}>
+            {unavailable ? 'Unavailable' : priceRange(item)}
+          </Text>
+        </View>
+
+        {!unavailable && (
+          totalQty === 0 ? (
+            <TouchableOpacity style={styles.addBtn} onPress={() => handleTap(item)} activeOpacity={0.8}>
+              <Plus size={18} color={colors.white} />
+            </TouchableOpacity>
+          ) : hasMultiVariant ? (
+            <TouchableOpacity style={styles.multiQtyBtn} onPress={() => setPickerItem(item)} activeOpacity={0.8}>
+              <Plus size={14} color={colors.primary} />
+              <Text style={styles.multiQtyText}>{totalQty}</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.qtyControl}>
+              <TouchableOpacity style={styles.qtyBtn} onPress={() => decrementItem(item.variants[0].id)}>
+                <Minus size={14} color={colors.primary} />
+              </TouchableOpacity>
+              <Text style={styles.qtyText}>{totalQty}</Text>
+              <TouchableOpacity style={styles.qtyBtn} onPress={() => incrementItem(item.variants[0].id)}>
+                <Plus size={14} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+          )
+        )}
+      </View>
+    );
+  };
+
+  // Build SectionList sections
+  const sections = [
+    ...categories.map(cat => ({ title: cat.name, data: cat.items })),
+    ...(uncategorized.length > 0 ? [{ title: '', data: uncategorized }] : []),
+  ];
 
   const SkeletonItem = () => (
     <View style={[styles.itemCard, { gap: spacing.sm }]}>
@@ -110,49 +322,6 @@ export default function VendorMenuScreen({ route, navigation }: any) {
       <Skeleton width={36} height={36} borderRadius={radius.sm} />
     </View>
   );
-
-  const renderItem = ({ item }: { item: MenuItem }) => {
-    const qty = getItemQty(item.id);
-    const unavailable = !item.isAvailable;
-
-    return (
-      <View style={[styles.itemCard, unavailable && styles.itemUnavailable]}>
-        <View style={styles.itemInfo}>
-          <Text style={[styles.itemName, unavailable && styles.textDimmed]}>{item.name}</Text>
-          <Text style={[styles.itemPrice, unavailable && styles.textDimmed]}>
-            ₹{item.price.toFixed(2)}
-          </Text>
-          {unavailable && (
-            <Text style={styles.unavailableTag}>Unavailable</Text>
-          )}
-        </View>
-
-        {!unavailable && (
-          qty === 0 ? (
-            <TouchableOpacity style={styles.addBtn} onPress={() => handleAdd(item)} activeOpacity={0.8}>
-              <Plus size={18} color={colors.white} />
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.qtyControl}>
-              <TouchableOpacity style={styles.qtyBtn} onPress={() => decrementItem(item.id)}>
-                <Minus size={14} color={colors.primary} />
-              </TouchableOpacity>
-              <Text style={styles.qtyText}>{qty}</Text>
-              <TouchableOpacity style={styles.qtyBtn} onPress={() => incrementItem(item.id)}>
-                <Plus size={14} color={colors.primary} />
-              </TouchableOpacity>
-            </View>
-          )
-        )}
-      </View>
-    );
-  };
-
-  const allItems = [
-    ...availableItems,
-    ...(unavailableItems.length > 0 ? [{ id: '__divider__', name: '', price: 0, isAvailable: false, vendorId: '' }] : []),
-    ...unavailableItems,
-  ];
 
   return (
     <View style={styles.container}>
@@ -181,18 +350,20 @@ export default function VendorMenuScreen({ route, navigation }: any) {
           {[1, 2, 3, 4, 5, 6].map(k => <SkeletonItem key={k} />)}
         </View>
       ) : (
-        <FlatList
-          data={allItems}
+        <SectionList
+          sections={sections}
           keyExtractor={item => item.id}
-          renderItem={({ item }) =>
-            item.id === '__divider__' ? (
-              <View style={styles.dividerRow}>
-                <Text style={styles.dividerLabel}>Not available right now</Text>
+          renderItem={({ item }) => renderMenuItem(item)}
+          renderSectionHeader={({ section: { title } }) =>
+            title ? (
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>{title}</Text>
               </View>
-            ) : renderItem({ item })
+            ) : null
           }
           contentContainerStyle={[styles.list, { paddingBottom: 110 }]}
           showsVerticalScrollIndicator={false}
+          stickySectionHeadersEnabled={false}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
@@ -226,9 +397,18 @@ export default function VendorMenuScreen({ route, navigation }: any) {
         vendorId={vendor.id}
         gstRegistered={vendor.gstRegistered ?? false}
       />
+
+      <VariantPicker
+        item={pickerItem}
+        vendorId={vendor.id}
+        vendorName={vendor.name}
+        onClose={() => setPickerItem(null)}
+      />
     </View>
   );
 }
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
@@ -255,6 +435,17 @@ const styles = StyleSheet.create({
   },
   cartBadgeText: { fontFamily: font.bold, fontSize: 10, color: colors.white },
   list: { padding: spacing.md, gap: spacing.sm },
+  sectionHeader: {
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xs,
+  },
+  sectionTitle: {
+    fontFamily: font.bold,
+    fontSize: 13,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
   itemCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -266,18 +457,31 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.sm,
   },
-  itemUnavailable: { opacity: 0.5 },
+  itemUnavailable: { opacity: 0.45 },
   itemInfo: { flex: 1, gap: 3 },
-  itemName: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
-  itemPrice: { fontFamily: font.bold, fontSize: 15, color: colors.primary },
+  itemTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  vegDot: { width: 9, height: 9, borderRadius: 5, flexShrink: 0 },
+  itemName: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary, flex: 1 },
+  itemDesc: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary, marginLeft: 15 },
+  itemPrice: { fontFamily: font.bold, fontSize: 14, color: colors.primary, marginLeft: 15 },
   textDimmed: { color: colors.textSecondary },
-  unavailableTag: { fontFamily: font.medium, fontSize: 11, color: colors.error },
   addBtn: {
     backgroundColor: colors.primary,
     borderRadius: radius.sm,
     width: 36, height: 36,
     alignItems: 'center', justifyContent: 'center',
   },
+  multiQtyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderRadius: radius.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  multiQtyText: { fontFamily: font.bold, fontSize: 14, color: colors.primary },
   qtyControl: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -289,8 +493,6 @@ const styles = StyleSheet.create({
   },
   qtyBtn: { padding: 8 },
   qtyText: { fontFamily: font.bold, fontSize: 14, color: colors.white, minWidth: 24, textAlign: 'center' },
-  dividerRow: { paddingVertical: spacing.sm },
-  dividerLabel: { fontFamily: font.semiBold, fontSize: 12, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
   cartBarWrapper: {
     position: 'absolute',
     bottom: 24,
@@ -320,4 +522,64 @@ const styles = StyleSheet.create({
   cartCountText: { fontFamily: font.bold, fontSize: 13, color: colors.white },
   cartBarLabel: { fontFamily: font.bold, fontSize: 15, color: colors.white },
   cartBarTotal: { fontFamily: font.bold, fontSize: 15, color: colors.white },
+});
+
+const pickerStyles = StyleSheet.create({
+  overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    maxHeight: '70%',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    gap: spacing.sm,
+  },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  vegDot: { width: 10, height: 10, borderRadius: 5, marginTop: 2 },
+  itemName: { fontFamily: font.bold, fontSize: 17, color: colors.white },
+  itemDesc: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary, marginTop: 4, marginLeft: 16 },
+  closeBtn: {
+    width: 32, height: 32,
+    borderRadius: radius.full,
+    backgroundColor: colors.background,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  variantRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    gap: spacing.sm,
+  },
+  variantLabel: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
+  variantPrice: { fontFamily: font.medium, fontSize: 13, color: colors.textSecondary, marginTop: 2 },
+  addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.primary,
+    borderRadius: radius.sm,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  addBtnText: { fontFamily: font.bold, fontSize: 14, color: colors.white },
+  qtyControl: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceHigh,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    overflow: 'hidden',
+  },
+  qtyBtn: { padding: 8 },
+  qtyText: { fontFamily: font.bold, fontSize: 14, color: colors.white, minWidth: 24, textAlign: 'center' },
 });

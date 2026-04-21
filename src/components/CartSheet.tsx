@@ -52,7 +52,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
       setLoading(true);
       const { data } = await api.student.placeOrder(
         vendorId,
-        items.map(i => ({ menuItemId: i.menuItemId, quantity: i.quantity })),
+        items.map(i => ({ variantId: i.variantId, quantity: i.quantity })),
       );
       clear();
       setActiveOrder(data);
@@ -68,15 +68,17 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
   const renderItem = ({ item }: { item: CartItem }) => (
     <View style={styles.row}>
       <View style={styles.rowInfo}>
-        <Text style={styles.itemName}>{item.name}</Text>
+        <Text style={styles.itemName}>
+          {item.name}{item.variantLabel ? ` · ${item.variantLabel}` : ''}
+        </Text>
         <Text style={styles.itemPrice}>₹{(item.price * item.quantity).toFixed(2)}</Text>
       </View>
       <View style={styles.qtyControl}>
-        <TouchableOpacity style={styles.qtyBtn} onPress={() => decrementItem(item.menuItemId)}>
+        <TouchableOpacity style={styles.qtyBtn} onPress={() => decrementItem(item.variantId)}>
           <Minus size={14} color={colors.primary} />
         </TouchableOpacity>
         <Text style={styles.qtyText}>{item.quantity}</Text>
-        <TouchableOpacity style={styles.qtyBtn} onPress={() => incrementItem(item.menuItemId)}>
+        <TouchableOpacity style={styles.qtyBtn} onPress={() => incrementItem(item.variantId)}>
           <Plus size={14} color={colors.primary} />
         </TouchableOpacity>
       </View>
@@ -113,7 +115,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
           <>
             <FlatList
               data={items}
-              keyExtractor={i => i.menuItemId}
+              keyExtractor={i => i.variantId}
               renderItem={renderItem}
               style={styles.itemList}
             />
