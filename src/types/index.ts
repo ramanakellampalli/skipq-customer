@@ -65,6 +65,11 @@ export interface Order {
   items: OrderItem[];
 }
 
+export interface StudentMenuResponse {
+  categories: MenuCategory[];
+  uncategorized: MenuItem[];
+}
+
 export interface CartItem {
   variantId: string;
   menuItemId: string;

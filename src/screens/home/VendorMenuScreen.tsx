@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, SectionList, TouchableOpacity, StyleSheet,
   StatusBar, Alert, RefreshControl, Vibration, Modal,
-  SafeAreaView, ScrollView,
+  ScrollView,
 } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withSpring,
@@ -130,6 +130,8 @@ function VariantPicker({ item, vendorId, vendorName, onClose }: VariantPickerPro
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
+type Section = { title: string; key: string; data: MenuItem[] };
+
 export default function VendorMenuScreen({ route, navigation }: any) {
   const { vendor } = route.params;
   const [categories, setCategories] = useState<MenuCategory[]>([]);
@@ -138,6 +140,10 @@ export default function VendorMenuScreen({ route, navigation }: any) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [cartVisible, setCartVisible] = useState(false);
   const [pickerItem, setPickerItem] = useState<MenuItem | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('');
+
+  const sectionListRef = useRef<SectionList<MenuItem, Section>>(null);
+  const tabScrollRef = useRef<ScrollView>(null);
 
   const addItem = useCartStore(s => s.addItem);
   const incrementItem = useCartStore(s => s.incrementItem);
@@ -158,30 +164,13 @@ export default function VendorMenuScreen({ route, navigation }: any) {
     cartBarY.value = withSpring(showCartBar ? 0 : CART_BAR_HEIGHT + 40, { damping: 16, stiffness: 160 });
   }, [showCartBar]);
 
-  const parseMenuResponse = (data: MenuItem[]) => {
-    const categoryMap = new Map<string, MenuCategory>();
-    const uncat: MenuItem[] = [];
-
-    data.forEach(item => {
-      if (!item.categoryId) {
-        uncat.push(item);
-        return;
-      }
-      if (!categoryMap.has(item.categoryId)) {
-        categoryMap.set(item.categoryId, { id: item.categoryId, name: '', displayOrder: 0, items: [] });
-      }
-      categoryMap.get(item.categoryId)!.items.push(item);
-    });
-
-    return { categories: Array.from(categoryMap.values()), uncategorized: uncat };
-  };
-
   const fetchMenu = useCallback(async () => {
     try {
       const res = await api.student.getMenu(vendor.id);
-      const { categories: cats, uncategorized: uncat } = parseMenuResponse(res.data);
-      setCategories(cats);
-      setUncategorized(uncat);
+      setCategories(res.data.categories);
+      setUncategorized(res.data.uncategorized);
+      const firstKey = res.data.categories[0]?.id ?? (res.data.uncategorized.length > 0 ? 'uncategorized' : '');
+      setActiveTab(firstKey);
     } finally {
       setLoading(false);
     }
@@ -193,13 +182,22 @@ export default function VendorMenuScreen({ route, navigation }: any) {
     setIsRefreshing(true);
     try {
       const res = await api.student.getMenu(vendor.id);
-      const { categories: cats, uncategorized: uncat } = parseMenuResponse(res.data);
-      setCategories(cats);
-      setUncategorized(uncat);
+      setCategories(res.data.categories);
+      setUncategorized(res.data.uncategorized);
     } finally {
       setIsRefreshing(false);
     }
   }, [vendor.id]);
+
+  const sections: Section[] = [
+    ...categories.map(cat => ({ title: cat.name, key: cat.id, data: cat.items })),
+    ...(uncategorized.length > 0 ? [{ title: 'Other', key: 'uncategorized', data: uncategorized }] : []),
+  ];
+
+  const handleTabPress = (key: string, index: number) => {
+    setActiveTab(key);
+    sectionListRef.current?.scrollToLocation({ sectionIndex: index, itemIndex: 0, animated: true, viewOffset: 0 });
+  };
 
   const getVariantQty = (variantId: string) =>
     cartItems.find(i => i.variantId === variantId)?.quantity ?? 0;
@@ -307,12 +305,6 @@ export default function VendorMenuScreen({ route, navigation }: any) {
     );
   };
 
-  // Build SectionList sections
-  const sections = [
-    ...categories.map(cat => ({ title: cat.name, data: cat.items })),
-    ...(uncategorized.length > 0 ? [{ title: '', data: uncategorized }] : []),
-  ];
-
   const SkeletonItem = () => (
     <View style={[styles.itemCard, { gap: spacing.sm }]}>
       <View style={styles.itemInfo}>
@@ -345,22 +337,56 @@ export default function VendorMenuScreen({ route, navigation }: any) {
         )}
       </View>
 
+      {/* Category tab bar */}
+      {!loading && sections.length > 1 && (
+        <View style={styles.tabBarWrapper}>
+          <ScrollView
+            ref={tabScrollRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabBarContent}
+          >
+            {sections.map((section, index) => {
+              const isActive = activeTab === section.key;
+              return (
+                <TouchableOpacity
+                  key={section.key}
+                  style={[styles.tab, isActive && styles.tabActive]}
+                  onPress={() => handleTabPress(section.key, index)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                    {section.title}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
+
       {loading ? (
         <View style={styles.list}>
           {[1, 2, 3, 4, 5, 6].map(k => <SkeletonItem key={k} />)}
         </View>
       ) : (
         <SectionList
+          ref={sectionListRef}
           sections={sections}
           keyExtractor={item => item.id}
           renderItem={({ item }) => renderMenuItem(item)}
-          renderSectionHeader={({ section: { title } }) =>
-            title ? (
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>{title}</Text>
-              </View>
-            ) : null
-          }
+          renderSectionHeader={({ section }) => (
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+            </View>
+          )}
+          onViewableItemsChanged={({ viewableItems }) => {
+            const first = viewableItems.find(v => v.isViewable && v.section);
+            if (first?.section) {
+              setActiveTab((first.section as Section).key);
+            }
+          }}
+          viewabilityConfig={{ itemVisiblePercentThreshold: 20 }}
           contentContainerStyle={[styles.list, { paddingBottom: 110 }]}
           showsVerticalScrollIndicator={false}
           stickySectionHeadersEnabled={false}
@@ -434,6 +460,36 @@ const styles = StyleSheet.create({
     width: 16, height: 16, alignItems: 'center', justifyContent: 'center',
   },
   cartBadgeText: { fontFamily: font.bold, fontSize: 10, color: colors.white },
+  tabBarWrapper: {
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  tabBarContent: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
+  },
+  tab: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: radius.full,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  tabActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  tabText: {
+    fontFamily: font.medium,
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  tabTextActive: {
+    color: colors.white,
+  },
   list: { padding: spacing.md, gap: spacing.sm },
   sectionHeader: {
     paddingTop: spacing.md,
