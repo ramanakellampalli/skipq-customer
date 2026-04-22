@@ -8,3 +8,10 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
+
+# react-native-keychain
+-keep class com.oblador.keychain.** { *; }
+-keep class androidx.biometric.** { *; }
+
+# react-native-biometrics
+-keep class com.rnbiometrics.** { *; }
