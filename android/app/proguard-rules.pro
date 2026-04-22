@@ -9,6 +9,10 @@
 
 # Add any project specific keep options here:
 
+# react-native-config: RNCConfigModuleImpl reads env vars from BuildConfig via reflection
+-keep class com.skipqcustomer.BuildConfig { *; }
+-keep class com.lugg.RNCConfig.** { *; }
+
 # react-native-keychain
 -keep class com.oblador.keychain.** { *; }
 -keep class androidx.biometric.** { *; }
@@ -19,18 +23,13 @@
 -keep class com.rnbiometrics.** { *; }
 -keep class com.reactnativebiometrics.** { *; }
 
-# Additional security/biometric classes
--keep class androidx.biometric.BiometricPrompt { *; }
--keep class androidx.biometric.BiometricPrompt$PromptInfo { *; }
--keep class androidx.biometric.BiometricPrompt$AuthenticationResult { *; }
--keep class androidx.core.content.ContextCompat { *; }
--keep class androidx.fragment.app.FragmentActivity { *; }
+# OkHttp / networking
+-keep class okhttp3.** { *; }
+-keep class okio.** { *; }
+-dontwarn okhttp3.**
+-dontwarn okio.**
 
 # JNI native methods
 -keepclasseswithmembernames class * {
     native <methods>;
 }
-
-# Keep all model classes
--keep class * extends androidx.fragment.app.Fragment { *; }
--keep class * extends android.app.Activity { *; }
