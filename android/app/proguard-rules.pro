@@ -12,6 +12,25 @@
 # react-native-keychain
 -keep class com.oblador.keychain.** { *; }
 -keep class androidx.biometric.** { *; }
+-keep class androidx.security.** { *; }
+-keep class android.security.** { *; }
 
 # react-native-biometrics
 -keep class com.rnbiometrics.** { *; }
+-keep class com.reactnativebiometrics.** { *; }
+
+# Additional security/biometric classes
+-keep class androidx.biometric.BiometricPrompt { *; }
+-keep class androidx.biometric.BiometricPrompt$PromptInfo { *; }
+-keep class androidx.biometric.BiometricPrompt$AuthenticationResult { *; }
+-keep class androidx.core.content.ContextCompat { *; }
+-keep class androidx.fragment.app.FragmentActivity { *; }
+
+# JNI native methods
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# Keep all model classes
+-keep class * extends androidx.fragment.app.Fragment { *; }
+-keep class * extends android.app.Activity { *; }
