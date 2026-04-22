@@ -60,15 +60,18 @@ export default function LoginScreen({ navigation }: any) {
 
       const available = await isBiometricAvailable();
       if (available) {
-        const label = await getBiometricLabel();
-        Alert.alert(
-          `Enable ${label} Login?`,
-          `Sign in faster next time using ${label}.`,
-          [
-            { text: 'Not Now', style: 'cancel' },
-            { text: 'Enable', onPress: async () => { await saveCredentials(email.trim(), password); } },
-          ],
-        );
+        const hasCreds = await hasSavedCredentials();
+        if (!hasCreds) {
+          const label = await getBiometricLabel();
+          Alert.alert(
+            `Enable ${label} Login?`,
+            `Sign in faster next time using ${label}.`,
+            [
+              { text: 'Not Now', style: 'cancel' },
+              { text: 'Enable', onPress: async () => { await saveCredentials(email.trim(), password); } },
+            ],
+          );
+        }
       }
     } catch (err: any) {
       const msg = err.response?.data?.message || 'Invalid email or password';
