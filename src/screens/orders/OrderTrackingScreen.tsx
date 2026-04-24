@@ -21,16 +21,20 @@ function stepIndex(status: OrderStatus) {
   return STATUS_ORDER.indexOf(status);
 }
 
-export default function OrderTrackingScreen({ route }: any) {
+export default function OrderTrackingScreen({ route, navigation }: any) {
   const { orderId } = route.params;
   const setActiveOrder = useStudentStore(state => state.setActiveOrder);
   const order = useStudentStore(state =>
-    state.activeOrder?.id === orderId ? state.activeOrder : null
+    state.activeOrder?.id === orderId
+      ? state.activeOrder
+      : state.pastOrders.find(o => o.id === orderId) ?? null
   );
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
+    const isFinal = !order || ['COMPLETED', 'REJECTED'].includes(order.state.orderStatus);
+    if (isFinal) return;
     const pulse = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, { toValue: 1.3, duration: 700, useNativeDriver: true }),
@@ -39,10 +43,18 @@ export default function OrderTrackingScreen({ route }: any) {
     );
     pulse.start();
     return () => pulse.stop();
-  }, [pulseAnim]);
+  }, [order?.state.orderStatus, pulseAnim]);
 
   useEffect(() => {
-    if (!orderId) return;
+    const status = order?.state.orderStatus;
+    if (status === 'COMPLETED' || status === 'REJECTED') {
+      const t = setTimeout(() => navigation.goBack(), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [order?.state.orderStatus, navigation]);
+
+  useEffect(() => {
+    if (!orderId || !Config.ABLY_API_KEY) return;
     const client = new Ably.Realtime({ key: Config.ABLY_API_KEY, closeOnUnload: false });
     const channel = client.channels.get(`order:${orderId}`);
     channel.subscribe('status', msg => {
