@@ -7,6 +7,7 @@ export interface StudentSyncResponse {
   vendors: Vendor[];
   activeOrder: Order | null;
   pastOrders: Order[];
+  vendorImages: Record<string, string[]>;
 }
 
 export const api = {

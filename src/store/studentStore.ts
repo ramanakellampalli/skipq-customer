@@ -14,12 +14,14 @@ interface StudentState {
   vendors: Vendor[];
   activeOrder: Order | null;
   pastOrders: Order[];
+  vendorImages: Record<string, string[]>;
   isSynced: boolean;
   setSync: (data: {
     profile: StudentProfile;
     vendors: Vendor[];
     activeOrder: Order | null;
     pastOrders: Order[];
+    vendorImages: Record<string, string[]>;
   }) => void;
   setActiveOrder: (order: Order) => void;
   completeActiveOrder: () => void;
@@ -31,10 +33,11 @@ export const useStudentStore = create<StudentState>(set => ({
   vendors: [],
   activeOrder: null,
   pastOrders: [],
+  vendorImages: {},
   isSynced: false,
 
-  setSync: ({ profile, vendors, activeOrder, pastOrders }) =>
-    set({ profile, vendors, activeOrder, pastOrders, isSynced: true }),
+  setSync: ({ profile, vendors, activeOrder, pastOrders, vendorImages }) =>
+    set({ profile, vendors, activeOrder, pastOrders, vendorImages, isSynced: true }),
 
   setActiveOrder: order =>
     set(state => {
@@ -57,5 +60,5 @@ export const useStudentStore = create<StudentState>(set => ({
     })),
 
   reset: () =>
-    set({ profile: null, vendors: [], activeOrder: null, pastOrders: [], isSynced: false }),
+    set({ profile: null, vendors: [], activeOrder: null, pastOrders: [], vendorImages: {}, isSynced: false }),
 }));
