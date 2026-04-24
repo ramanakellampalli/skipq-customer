@@ -12,7 +12,9 @@ import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
 import { MenuItem, MenuVariant, MenuCategory } from '../../types';
 import { useCartStore } from '../../store/cartStore';
+import { useStudentStore } from '../../store/studentStore';
 import CartSheet from '../../components/CartSheet';
+import ImageCarousel from '../../components/ImageCarousel';
 import Skeleton from '../../components/Skeleton';
 
 const CART_BAR_HEIGHT = 80;
@@ -152,6 +154,8 @@ export default function VendorMenuScreen({ route, navigation }: any) {
   const itemCount = useCartStore(s => s.itemCount());
   const total = useCartStore(s => s.total());
   const cartVendorId = useCartStore(s => s.vendorId);
+  const vendorImages = useStudentStore(s => s.vendorImages);
+  const carouselImages = vendorImages[vendor.id] ?? [];
 
   const cartBarY = useSharedValue(CART_BAR_HEIGHT + 40);
   const cartBarStyle = useAnimatedStyle(() => ({
@@ -374,6 +378,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
           ref={sectionListRef}
           sections={sections}
           keyExtractor={item => item.id}
+          ListHeaderComponent={carouselImages.length > 0 ? <ImageCarousel images={carouselImages} /> : null}
           renderItem={({ item }) => renderMenuItem(item)}
           renderSectionHeader={({ section }) => (
             <View style={styles.sectionHeader}>
