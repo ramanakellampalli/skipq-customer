@@ -1,6 +1,13 @@
 import { useEffect } from 'react';
 import { Platform, PermissionsAndroid } from 'react-native';
-import messaging, { AuthorizationStatus } from '@react-native-firebase/messaging';
+import {
+  getMessaging,
+  getToken,
+  requestPermission,
+  onTokenRefresh,
+  hasPermission,
+  AuthorizationStatus,
+} from '@react-native-firebase/messaging';
 import { api } from '../api';
 
 export async function requestNotificationPermission(): Promise<boolean> {
@@ -10,14 +17,14 @@ export async function requestNotificationPermission(): Promise<boolean> {
     );
   }
 
-  const status = await messaging().requestPermission();
+  const status = await requestPermission(getMessaging());
   const granted =
     status === AuthorizationStatus.AUTHORIZED ||
     status === AuthorizationStatus.PROVISIONAL;
 
   if (!granted) return false;
 
-  const token = await messaging().getToken();
+  const token = await getToken(getMessaging());
   if (token) {
     await api.student.registerDeviceToken(token).catch(() => {});
   }
@@ -25,7 +32,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
 }
 
 export async function getNotificationStatus(): Promise<number> {
-  return messaging().hasPermission();
+  return hasPermission(getMessaging());
 }
 
 export function usePushNotifications(enabled: boolean) {
@@ -34,7 +41,7 @@ export function usePushNotifications(enabled: boolean) {
 
     requestNotificationPermission();
 
-    const unsubscribe = messaging().onTokenRefresh(token => {
+    const unsubscribe = onTokenRefresh(getMessaging(), token => {
       api.student.registerDeviceToken(token).catch(() => {});
     });
 

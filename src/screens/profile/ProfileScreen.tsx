@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert, Linking } from 'react-native';
 import { LogOut, MapPin, Mail, Trash2, Bell, BellOff } from 'lucide-react-native';
-import messaging, { AuthorizationStatus } from '@react-native-firebase/messaging';
+import { AuthorizationStatus } from '@react-native-firebase/messaging';
 import { useAuthStore } from '../../store/authStore';
 import { useStudentStore } from '../../store/studentStore';
 import { useCartStore } from '../../store/cartStore';
