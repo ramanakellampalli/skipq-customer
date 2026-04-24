@@ -22,6 +22,7 @@ export default function ProfileScreen() {
   }, []);
 
   const handleEnableNotifications = async () => {
+    if (notifStatus === messaging.AuthorizationStatus.AUTHORIZED) return;
     if (notifStatus === messaging.AuthorizationStatus.DENIED) {
       Linking.openSettings();
       return;
