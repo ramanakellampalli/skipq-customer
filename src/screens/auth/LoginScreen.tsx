@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, KeyboardAvoidingView, Platform, Alert, ScrollView, StatusBar,
+  KeyboardAvoidingView, Platform, Alert, ScrollView, StatusBar,
 } from 'react-native';
 import { Fingerprint } from 'lucide-react-native';
+import PasswordInput from '../../components/PasswordInput';
+import LoadingDots from '../../components/LoadingDots';
 import { api } from '../../api';
 import { useAuthStore } from '../../store/authStore';
 import { colors, font, radius, spacing } from '../../theme';
@@ -135,14 +137,10 @@ export default function LoginScreen({ navigation }: any) {
 
           <View style={styles.field}>
             <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
+            <PasswordInput
               value={password}
               onChangeText={setPassword}
               placeholder="••••••••"
-              placeholderTextColor={colors.textSecondary}
-              secureTextEntry
-              autoCapitalize="none"
             />
           </View>
 
@@ -151,10 +149,7 @@ export default function LoginScreen({ navigation }: any) {
             onPress={handleLogin}
             disabled={loading}
             activeOpacity={0.85}>
-            {loading
-              ? <ActivityIndicator color={colors.white} />
-              : <Text style={styles.btnText}>Sign In</Text>
-            }
+            {loading ? <LoadingDots /> : <Text style={styles.btnText}>Sign In</Text>}
           </TouchableOpacity>
 
           {biometricLabel && !loading && (
