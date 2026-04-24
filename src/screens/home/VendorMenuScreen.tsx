@@ -81,8 +81,9 @@ function VariantPicker({ item, vendorId, vendorName, onClose }: VariantPickerPro
       <View style={pickerStyles.overlay}>
         <View style={pickerStyles.sheet}>
           <View style={pickerStyles.header}>
-            <View style={{ flex: 1 }}>
+            <View style={pickerStyles.headerInfo}>
               <View style={pickerStyles.titleRow}>
+                {/* eslint-disable-next-line react-native/no-inline-styles */}
                 <View style={[pickerStyles.vegDot, { backgroundColor: item.isVeg ? colors.success : '#e53935' }]} />
                 <Text style={pickerStyles.itemName}>{item.name}</Text>
               </View>
@@ -100,7 +101,7 @@ function VariantPicker({ item, vendorId, vendorName, onClose }: VariantPickerPro
               const qty = getQty(variant.id);
               return (
                 <View key={variant.id} style={pickerStyles.variantRow}>
-                  <View style={{ flex: 1 }}>
+                  <View style={pickerStyles.variantInfo}>
                     <Text style={pickerStyles.variantLabel}>{variant.label || 'Regular'}</Text>
                     <Text style={pickerStyles.variantPrice}>₹{variant.price.toFixed(2)}</Text>
                   </View>
@@ -166,7 +167,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
 
   useEffect(() => {
     cartBarY.value = withSpring(showCartBar ? 0 : CART_BAR_HEIGHT + 40, { damping: 16, stiffness: 160 });
-  }, [showCartBar]);
+  }, [showCartBar, cartBarY]);
 
   const fetchMenu = useCallback(async () => {
     try {
@@ -270,6 +271,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
       <View key={item.id} style={[styles.itemCard, unavailable && styles.itemUnavailable]}>
         <View style={styles.itemInfo}>
           <View style={styles.itemTitleRow}>
+            {/* eslint-disable-next-line react-native/no-inline-styles */}
             <View style={[styles.vegDot, { backgroundColor: item.isVeg ? colors.success : '#e53935' }]} />
             <Text style={[styles.itemName, unavailable && styles.textDimmed]}>{item.name}</Text>
           </View>
@@ -308,16 +310,6 @@ export default function VendorMenuScreen({ route, navigation }: any) {
       </View>
     );
   };
-
-  const SkeletonItem = () => (
-    <View style={[styles.itemCard, { gap: spacing.sm }]}>
-      <View style={styles.itemInfo}>
-        <Skeleton width="65%" height={16} />
-        <Skeleton width={56} height={14} style={{ marginTop: 6 }} />
-      </View>
-      <Skeleton width={36} height={36} borderRadius={radius.sm} />
-    </View>
-  );
 
   return (
     <View style={styles.container}>
@@ -392,7 +384,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
             }
           }}
           viewabilityConfig={{ itemVisiblePercentThreshold: 20 }}
-          contentContainerStyle={[styles.list, { paddingBottom: 110 }]}
+          contentContainerStyle={[styles.list, styles.listContent]}
           showsVerticalScrollIndicator={false}
           stickySectionHeadersEnabled={false}
           refreshControl={
@@ -440,6 +432,18 @@ export default function VendorMenuScreen({ route, navigation }: any) {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
+
+function SkeletonItem() {
+  return (
+    <View style={[styles.itemCard, { gap: spacing.sm }]}>
+      <View style={styles.itemInfo}>
+        <Skeleton width="65%" height={16} />
+        <Skeleton width={56} height={14} style={styles.skeletonMeta} />
+      </View>
+      <Skeleton width={36} height={36} borderRadius={radius.sm} />
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
@@ -583,6 +587,8 @@ const styles = StyleSheet.create({
   cartCountText: { fontFamily: font.bold, fontSize: 13, color: colors.white },
   cartBarLabel: { fontFamily: font.bold, fontSize: 15, color: colors.white },
   cartBarTotal: { fontFamily: font.bold, fontSize: 15, color: colors.white },
+  skeletonMeta: { marginTop: 6 },
+  listContent: { paddingBottom: 110 },
 });
 
 const pickerStyles = StyleSheet.create({
@@ -643,4 +649,6 @@ const pickerStyles = StyleSheet.create({
   },
   qtyBtn: { padding: 8 },
   qtyText: { fontFamily: font.bold, fontSize: 14, color: colors.white, minWidth: 24, textAlign: 'center' },
+  headerInfo: { flex: 1 },
+  variantInfo: { flex: 1 },
 });

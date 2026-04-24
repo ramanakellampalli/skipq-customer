@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: TypeScript check
+    name: TypeScript + Lint
     runs-on: ubuntu-latest
 
     steps:
@@ -24,3 +24,6 @@ jobs:
 
       - name: TypeScript check
         run: npx tsc --noEmit
+
+      - name: Lint
+        run: npx eslint . --ext .ts,.tsx --max-warnings 0

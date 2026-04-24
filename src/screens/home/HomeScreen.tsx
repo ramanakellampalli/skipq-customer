@@ -72,17 +72,6 @@ export default function HomeScreen({ navigation }: any) {
     );
   };
 
-  const SkeletonCard = () => (
-    <View style={[styles.card, { marginBottom: spacing.sm }]}>
-      <View style={styles.cardGradient}>
-        <View style={styles.cardBottom}>
-          <Skeleton width="55%" height={20} />
-          <Skeleton width={80} height={13} style={{ marginTop: 6 }} />
-        </View>
-      </View>
-    </View>
-  );
-
   const greeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
@@ -155,6 +144,19 @@ export default function HomeScreen({ navigation }: any) {
   );
 }
 
+function SkeletonCard() {
+  return (
+    <View style={[styles.card, { marginBottom: spacing.sm }]}>
+      <View style={styles.cardGradient}>
+        <View style={styles.cardBottom}>
+          <Skeleton width="55%" height={20} />
+          <Skeleton width={80} height={13} style={styles.skeletonMeta} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   list: { paddingBottom: spacing.xl },
@@ -201,4 +203,5 @@ const styles = StyleSheet.create({
   metaText: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
   closedSection: { paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: spacing.sm },
   closedLabel: { fontFamily: font.semiBold, fontSize: 13, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  skeletonMeta: { marginTop: 6 },
 });
