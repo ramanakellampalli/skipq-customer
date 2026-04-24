@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert, Linking } from 'react-native';
 import { LogOut, MapPin, Mail, Trash2, Bell, BellOff } from 'lucide-react-native';
-import messaging from '@react-native-firebase/messaging';
+import messaging, { AuthorizationStatus } from '@react-native-firebase/messaging';
 import { useAuthStore } from '../../store/authStore';
 import { useStudentStore } from '../../store/studentStore';
 import { useCartStore } from '../../store/cartStore';
@@ -15,15 +15,15 @@ export default function ProfileScreen() {
   const { profile, reset } = useStudentStore();
   const { clear } = useCartStore();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [notifStatus, setNotifStatus] = useState<number>(messaging.AuthorizationStatus.NOT_DETERMINED);
+  const [notifStatus, setNotifStatus] = useState<number>(AuthorizationStatus.NOT_DETERMINED);
 
   useEffect(() => {
     getNotificationStatus().then(setNotifStatus);
   }, []);
 
   const handleEnableNotifications = async () => {
-    if (notifStatus === messaging.AuthorizationStatus.AUTHORIZED) return;
-    if (notifStatus === messaging.AuthorizationStatus.DENIED) {
+    if (notifStatus === AuthorizationStatus.AUTHORIZED) return;
+    if (notifStatus === AuthorizationStatus.DENIED) {
       Linking.openSettings();
       return;
     }
@@ -131,16 +131,16 @@ export default function ProfileScreen() {
       <View style={[styles.section, { marginTop: spacing.md }]}>
         <TouchableOpacity style={styles.row} onPress={handleEnableNotifications} activeOpacity={0.7}>
           <View style={styles.iconWrap}>
-            {notifStatus === messaging.AuthorizationStatus.AUTHORIZED
+            {notifStatus === AuthorizationStatus.AUTHORIZED
               ? <Bell size={16} color={colors.primary} />
               : <BellOff size={16} color={colors.textSecondary} />}
           </View>
           <View style={styles.rowContent}>
             <Text style={styles.rowLabel}>Push Notifications</Text>
             <Text style={styles.rowValue}>
-              {notifStatus === messaging.AuthorizationStatus.AUTHORIZED
+              {notifStatus === AuthorizationStatus.AUTHORIZED
                 ? 'Enabled'
-                : notifStatus === messaging.AuthorizationStatus.DENIED
+                : notifStatus === AuthorizationStatus.DENIED
                   ? 'Blocked — tap to open settings'
                   : 'Tap to enable'}
             </Text>

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Platform, PermissionsAndroid } from 'react-native';
-import messaging from '@react-native-firebase/messaging';
+import messaging, { AuthorizationStatus } from '@react-native-firebase/messaging';
 import { api } from '../api';
 
 export async function requestNotificationPermission(): Promise<boolean> {
@@ -12,8 +12,8 @@ export async function requestNotificationPermission(): Promise<boolean> {
 
   const status = await messaging().requestPermission();
   const granted =
-    status === messaging.AuthorizationStatus.AUTHORIZED ||
-    status === messaging.AuthorizationStatus.PROVISIONAL;
+    status === AuthorizationStatus.AUTHORIZED ||
+    status === AuthorizationStatus.PROVISIONAL;
 
   if (!granted) return false;
 
