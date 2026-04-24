@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Modal,
-  FlatList, Alert, ActivityIndicator, SafeAreaView,
+  FlatList, Alert, ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, Minus, Plus, ShoppingBag, ChevronDown, ChevronUp } from 'lucide-react-native';
 import { api } from '../api';
 import { useCartStore } from '../store/cartStore';
