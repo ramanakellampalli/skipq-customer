@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuthStore } from '../store/authStore';
 import { useStudentStore } from '../store/studentStore';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 import { colors, font } from '../theme';
 import { api } from '../api';
 
@@ -109,6 +110,8 @@ function MainNavigator() {
 export default function Navigation() {
   const { token, isLoading, loadFromStorage } = useAuthStore();
   const setSync = useStudentStore(state => state.setSync);
+
+  usePushNotifications(!!token);
 
   useEffect(() => {
     loadFromStorage();
