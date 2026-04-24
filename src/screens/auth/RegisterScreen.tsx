@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, KeyboardAvoidingView, Platform, Alert, ScrollView, StatusBar,
+  KeyboardAvoidingView, Platform, Alert, ScrollView, StatusBar,
 } from 'react-native';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
+import PasswordInput from '../../components/PasswordInput';
+import LoadingDots from '../../components/LoadingDots';
 
 export default function RegisterScreen({ navigation }: any) {
   const [name, setName] = useState('');
@@ -53,37 +55,57 @@ export default function RegisterScreen({ navigation }: any) {
         </View>
 
         <View style={styles.form}>
-          {[
-            { label: 'Full Name', value: name, onChange: setName, placeholder: 'John Doe', secure: false, keyboard: 'default' as const, capitalize: 'words' as const },
-            { label: 'College Email', value: email, onChange: setEmail, placeholder: 'you@college.edu', secure: false, keyboard: 'email-address' as const, capitalize: 'none' as const },
-            { label: 'Password', value: password, onChange: setPassword, placeholder: 'Min 8 characters', secure: true, keyboard: 'default' as const, capitalize: 'none' as const },
-            { label: 'Confirm Password', value: confirm, onChange: setConfirm, placeholder: 'Re-enter password', secure: true, keyboard: 'default' as const, capitalize: 'none' as const },
-          ].map(f => (
-            <View key={f.label} style={styles.field}>
-              <Text style={styles.label}>{f.label}</Text>
-              <TextInput
-                style={styles.input}
-                value={f.value}
-                onChangeText={f.onChange}
-                placeholder={f.placeholder}
-                placeholderTextColor={colors.textSecondary}
-                secureTextEntry={f.secure}
-                keyboardType={f.keyboard}
-                autoCapitalize={f.capitalize}
-                autoCorrect={false}
-              />
-            </View>
-          ))}
+          <View style={styles.field}>
+            <Text style={styles.label}>Full Name</Text>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+              placeholder="John Doe"
+              placeholderTextColor={colors.textSecondary}
+              autoCapitalize="words"
+              autoCorrect={false}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>College Email</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="you@college.edu"
+              placeholderTextColor={colors.textSecondary}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Password</Text>
+            <PasswordInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Min 8 characters"
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Confirm Password</Text>
+            <PasswordInput
+              value={confirm}
+              onChangeText={setConfirm}
+              placeholder="Re-enter password"
+            />
+          </View>
 
           <TouchableOpacity
             style={[styles.btn, loading && styles.btnDisabled]}
             onPress={handleRegister}
             disabled={loading}
             activeOpacity={0.85}>
-            {loading
-              ? <ActivityIndicator color={colors.white} />
-              : <Text style={styles.btnText}>Create Account</Text>
-            }
+            {loading ? <LoadingDots /> : <Text style={styles.btnText}>Create Account</Text>}
           </TouchableOpacity>
         </View>
 
