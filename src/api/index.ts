@@ -30,6 +30,6 @@ export const api = {
     deleteAccount: () =>
       client.delete('/api/v1/student/account'),
     registerDeviceToken: (token: string) =>
-      client.put('/api/v1/student/device-token', { token }),
+      client.put('/api/v1/shared/device-token', { token }),
   },
 };
