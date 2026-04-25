@@ -40,10 +40,8 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
   const igst = igstApplicable ? total * 0.05 : 0;     // inter-state replaces CGST+SGST
   const totalTax = cgst + sgst + igst;
 
-  // Service fee breakdown
-  const platformFee = total * 0.03;                    // SkipQ platform fee 3%
-  const paymentTerminalFee = total * 0.02;             // payment processing 2%
-  const totalServiceFee = platformFee + paymentTerminalFee;
+  const platformFee = total * 0.03;
+  const totalServiceFee = platformFee;
 
   const grandTotal = total + cgst + sgst + igst + totalServiceFee;
 
@@ -166,10 +164,6 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
               </TouchableOpacity>
               {feeOpen && (
                 <View style={styles.accordionBody}>
-                  <View style={styles.pricingRow}>
-                    <Text style={styles.subLabel}>Payment terminal (2%)</Text>
-                    <Text style={styles.subValue}>₹{paymentTerminalFee.toFixed(2)}</Text>
-                  </View>
                   <View style={styles.pricingRow}>
                     <Text style={styles.subLabel}>Platform fee (3%)</Text>
                     <Text style={styles.subValue}>₹{platformFee.toFixed(2)}</Text>
