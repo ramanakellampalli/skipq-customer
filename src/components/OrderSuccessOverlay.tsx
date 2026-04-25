@@ -10,6 +10,8 @@ interface Props {
 export default function OrderSuccessOverlay({ visible, onDone }: Props) {
   const scaleAnim = useRef(new Animated.Value(0.4)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
 
   useEffect(() => {
     if (!visible) return;
@@ -23,8 +25,8 @@ export default function OrderSuccessOverlay({ visible, onDone }: Props) {
       ]),
       Animated.delay(1400),
       Animated.timing(opacityAnim, { toValue: 0, duration: 250, useNativeDriver: true }),
-    ]).start(() => onDone());
-  }, [visible]);
+    ]).start(() => onDoneRef.current());
+  }, [visible, scaleAnim, opacityAnim]);
 
   if (!visible) return null;
 

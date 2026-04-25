@@ -31,9 +31,10 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
   );
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const orderStatus = order?.state.orderStatus;
 
   useEffect(() => {
-    const isFinal = !order || ['COMPLETED', 'REJECTED'].includes(order.state.orderStatus);
+    const isFinal = !orderStatus || ['COMPLETED', 'REJECTED'].includes(orderStatus);
     if (isFinal) return;
     const pulse = Animated.loop(
       Animated.sequence([
@@ -43,15 +44,15 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
     );
     pulse.start();
     return () => pulse.stop();
-  }, [order?.state.orderStatus, pulseAnim]);
+  }, [orderStatus, pulseAnim]);
 
   useEffect(() => {
-    const status = order?.state.orderStatus;
+    const status = orderStatus;
     if (status === 'COMPLETED' || status === 'REJECTED') {
       const t = setTimeout(() => navigation.goBack(), 3000);
       return () => clearTimeout(t);
     }
-  }, [order?.state.orderStatus, navigation]);
+  }, [orderStatus, navigation]);
 
   useEffect(() => {
     if (!orderId || !Config.ABLY_API_KEY) return;

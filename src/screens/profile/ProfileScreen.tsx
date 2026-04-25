@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert } from 'react-native';
-import { LogOut, MapPin, Mail, Trash2 } from 'lucide-react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert, Linking } from 'react-native';
+import { LogOut, MapPin, Mail, Trash2, Bell, BellOff } from 'lucide-react-native';
+import { AuthorizationStatus } from '@react-native-firebase/messaging';
 import { useAuthStore } from '../../store/authStore';
 import { useStudentStore } from '../../store/studentStore';
 import { useCartStore } from '../../store/cartStore';
 import { api } from '../../api';
 import { hasSavedCredentials } from '../../utils/biometrics';
+import { requestNotificationPermission, getNotificationStatus } from '../../hooks/usePushNotifications';
 import { colors, font, radius, spacing } from '../../theme';
 
 export default function ProfileScreen() {
@@ -13,6 +15,25 @@ export default function ProfileScreen() {
   const { profile, reset } = useStudentStore();
   const { clear } = useCartStore();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [notifStatus, setNotifStatus] = useState<number>(AuthorizationStatus.NOT_DETERMINED);
+
+  useEffect(() => {
+    getNotificationStatus().then(setNotifStatus);
+  }, []);
+
+  const handleEnableNotifications = async () => {
+    if (notifStatus === AuthorizationStatus.AUTHORIZED) return;
+    if (notifStatus === AuthorizationStatus.DENIED) {
+      Linking.openSettings();
+      return;
+    }
+    const granted = await requestNotificationPermission();
+    const status = await getNotificationStatus();
+    setNotifStatus(status);
+    if (!granted) {
+      Alert.alert('Notifications blocked', 'Please enable notifications in your device settings.');
+    }
+  };
 
   const initials = profile?.name
     ? profile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -104,6 +125,27 @@ export default function ProfileScreen() {
             </View>
           </>
         )}
+      </View>
+
+      {/* Notifications */}
+      <View style={[styles.section, { marginTop: spacing.md }]}>
+        <TouchableOpacity style={styles.row} onPress={handleEnableNotifications} activeOpacity={0.7}>
+          <View style={styles.iconWrap}>
+            {notifStatus === AuthorizationStatus.AUTHORIZED
+              ? <Bell size={16} color={colors.primary} />
+              : <BellOff size={16} color={colors.textSecondary} />}
+          </View>
+          <View style={styles.rowContent}>
+            <Text style={styles.rowLabel}>Push Notifications</Text>
+            <Text style={styles.rowValue}>
+              {notifStatus === AuthorizationStatus.AUTHORIZED
+                ? 'Enabled'
+                : notifStatus === AuthorizationStatus.DENIED
+                  ? 'Blocked — tap to open settings'
+                  : 'Tap to enable'}
+            </Text>
+          </View>
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>

@@ -1,5 +1,5 @@
 import { client } from './client';
-import { Vendor, MenuItem, Order, StudentMenuResponse } from '../types';
+import { Vendor, Order, StudentMenuResponse } from '../types';
 import { StudentProfile } from '../store/studentStore';
 
 export interface StudentSyncResponse {
@@ -29,5 +29,7 @@ export const api = {
       client.post<Order>('/api/v1/student/orders', { vendorId, items }),
     deleteAccount: () =>
       client.delete('/api/v1/student/account'),
+    registerDeviceToken: (token: string) =>
+      client.put('/api/v1/shared/device-token', { token }),
   },
 };

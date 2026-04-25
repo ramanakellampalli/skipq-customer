@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, Alert, ScrollView, StatusBar,
@@ -20,6 +20,11 @@ export default function LoginScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
   const [biometricLabel, setBiometricLabel] = useState<string | null>(null);
   const { setAuth } = useAuthStore();
+
+  const doLogin = useCallback(async (loginEmail: string, loginPassword: string) => {
+    const { data } = await api.auth.login(loginEmail, loginPassword);
+    await setAuth(data.token);
+  }, [setAuth]);
 
   useEffect(() => {
     (async () => {
@@ -44,12 +49,7 @@ export default function LoginScreen({ navigation }: any) {
         }
       }
     })();
-  }, []);
-
-  const doLogin = async (loginEmail: string, loginPassword: string) => {
-    const { data } = await api.auth.login(loginEmail, loginPassword);
-    await setAuth(data.token);
-  };
+  }, [doLogin]);
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {

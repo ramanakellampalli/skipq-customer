@@ -79,3 +79,4 @@ yarn-error.log
 .env.*
 !.env.example
 android/gradle.properties
+android/app/google-services.json
