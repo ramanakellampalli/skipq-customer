@@ -176,10 +176,6 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
           )}
 
           <View style={styles.receiptRow}>
-            <Text style={styles.receiptLabel}>Payment terminal (2%)</Text>
-            <Text style={styles.receiptValue}>₹{order.pricing.fees.paymentTerminalFee.toFixed(2)}</Text>
-          </View>
-          <View style={styles.receiptRow}>
             <Text style={styles.receiptLabel}>Platform fee (3%)</Text>
             <Text style={styles.receiptValue}>₹{order.pricing.fees.platformFee.toFixed(2)}</Text>
           </View>
