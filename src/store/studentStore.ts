@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Vendor, Order } from '../types';
+import { Vendor, Order, ServiceRequest } from '../types';
 
 export interface StudentProfile {
   id: string;
@@ -15,6 +15,7 @@ interface StudentState {
   activeOrder: Order | null;
   pastOrders: Order[];
   vendorImages: Record<string, string[]>;
+  serviceRequests: ServiceRequest[];
   isSynced: boolean;
   setSync: (data: {
     profile: StudentProfile;
@@ -22,7 +23,9 @@ interface StudentState {
     activeOrder: Order | null;
     pastOrders: Order[];
     vendorImages: Record<string, string[]>;
+    serviceRequests: ServiceRequest[];
   }) => void;
+  addServiceRequest: (sr: ServiceRequest) => void;
   setActiveOrder: (order: Order) => void;
   completeActiveOrder: () => void;
   reset: () => void;
@@ -34,10 +37,14 @@ export const useStudentStore = create<StudentState>(set => ({
   activeOrder: null,
   pastOrders: [],
   vendorImages: {},
+  serviceRequests: [],
   isSynced: false,
 
-  setSync: ({ profile, vendors, activeOrder, pastOrders, vendorImages }) =>
-    set({ profile, vendors, activeOrder, pastOrders, vendorImages, isSynced: true }),
+  setSync: ({ profile, vendors, activeOrder, pastOrders, vendorImages, serviceRequests }) =>
+    set({ profile, vendors, activeOrder, pastOrders, vendorImages, serviceRequests: serviceRequests ?? [], isSynced: true }),
+
+  addServiceRequest: (sr) =>
+    set(state => ({ serviceRequests: [sr, ...state.serviceRequests] })),
 
   setActiveOrder: order =>
     set(state => {
@@ -60,5 +67,5 @@ export const useStudentStore = create<StudentState>(set => ({
     })),
 
   reset: () =>
-    set({ profile: null, vendors: [], activeOrder: null, pastOrders: [], vendorImages: {}, isSynced: false }),
+    set({ profile: null, vendors: [], activeOrder: null, pastOrders: [], vendorImages: {}, serviceRequests: [], isSynced: false }),
 }));

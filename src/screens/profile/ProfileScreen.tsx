@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert, Linking } from 'react-native';
-import { LogOut, MapPin, Mail, Trash2, Bell, BellOff } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
+import { LogOut, MapPin, Mail, Trash2, Bell, BellOff, HeadphonesIcon, ChevronRight } from 'lucide-react-native';
 import { AuthorizationStatus } from '@react-native-firebase/messaging';
 import { useAuthStore } from '../../store/authStore';
 import { useStudentStore } from '../../store/studentStore';
@@ -11,6 +12,7 @@ import { requestNotificationPermission, getNotificationStatus } from '../../hook
 import { colors, font, radius, spacing } from '../../theme';
 
 export default function ProfileScreen() {
+  const navigation = useNavigation<any>();
   const { logout } = useAuthStore();
   const { profile, reset } = useStudentStore();
   const { clear } = useCartStore();
@@ -147,6 +149,23 @@ export default function ProfileScreen() {
           </View>
         </TouchableOpacity>
       </View>
+
+      {/* Help & Support */}
+      <TouchableOpacity
+        style={[styles.section, { marginTop: spacing.md }]}
+        onPress={() => navigation.navigate('Help')}
+        activeOpacity={0.7}>
+        <View style={styles.row}>
+          <View style={styles.iconWrap}>
+            <HeadphonesIcon size={16} color={colors.primary} />
+          </View>
+          <View style={styles.rowContent}>
+            <Text style={styles.rowLabel}>Help & Support</Text>
+            <Text style={styles.rowValue}>Contact us with any issue</Text>
+          </View>
+          <ChevronRight size={16} color={colors.textSecondary} />
+        </View>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
         <LogOut size={18} color={colors.error} />
