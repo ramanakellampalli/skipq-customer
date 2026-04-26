@@ -15,6 +15,7 @@ import { colors, font, radius, spacing } from '../../theme';
 const TYPE_LABELS: Record<ServiceRequestType, string> = {
   PAYMENT_ISSUE: 'Payment Issue',
   REFUND_ISSUE:  'Refund Issue',
+  BILLING_ISSUE: 'Billing Issue',
   ACCOUNT_ISSUE: 'Account Issue',
   TECHNICAL:     'Technical',
   OTHER:         'Other',
