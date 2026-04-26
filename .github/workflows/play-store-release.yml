@@ -33,7 +33,16 @@ jobs:
           echo "ABLY_API_KEY=${{ secrets.ABLY_API_KEY }}" >> .env
 
       - name: Configure gradle.properties
-        run: echo "hermesEnabled=true" >> android/gradle.properties
+        run: |
+          cat >> android/gradle.properties << 'EOF'
+          org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=512m
+          org.gradle.parallel=true
+          android.useAndroidX=true
+          reactNativeArchitectures=arm64-v8a
+          newArchEnabled=true
+          hermesEnabled=true
+          edgeToEdgeEnabled=false
+          EOF
 
       - name: Decode keystore
         run: |
