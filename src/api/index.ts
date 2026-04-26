@@ -22,7 +22,7 @@ export const api = {
   },
 
   support: {
-    create: (data: { type: ServiceRequestType; subject: string; description: string }) =>
+    create: (data: { type: ServiceRequestType; description: string }) =>
       client.post<ServiceRequest>('/api/v1/support', data),
   },
 

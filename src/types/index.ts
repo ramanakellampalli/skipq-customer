@@ -79,7 +79,6 @@ export type ServiceRequestStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED
 export interface ServiceRequest {
   id: string;
   type: ServiceRequestType;
-  subject: string;
   status: ServiceRequestStatus;
   adminResponse: string | null;
   adminRespondedAt: string | null;
