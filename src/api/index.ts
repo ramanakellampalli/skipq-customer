@@ -1,5 +1,5 @@
 import { client } from './client';
-import { Vendor, Order, StudentMenuResponse } from '../types';
+import { Vendor, Order, StudentMenuResponse, ServiceRequest, ServiceRequestType } from '../types';
 import { StudentProfile } from '../store/studentStore';
 
 export interface StudentSyncResponse {
@@ -8,6 +8,7 @@ export interface StudentSyncResponse {
   activeOrder: Order | null;
   pastOrders: Order[];
   vendorImages: Record<string, string[]>;
+  serviceRequests: ServiceRequest[];
 }
 
 export const api = {
@@ -18,6 +19,11 @@ export const api = {
       client.post<{ token: string; userId: string; name: string; email: string }>('/api/v1/auth/login', { email, password }),
     verifyOtp: (email: string, otp: string) =>
       client.post<{ token: string; userId: string; name: string; email: string }>('/api/v1/auth/verify-otp', { email, code: otp }),
+  },
+
+  support: {
+    create: (data: { type: ServiceRequestType; description: string }) =>
+      client.post<ServiceRequest>('/api/v1/support', data),
   },
 
   student: {
