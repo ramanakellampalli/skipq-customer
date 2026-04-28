@@ -142,6 +142,9 @@ export default function LoginScreen({ navigation }: any) {
               onChangeText={setPassword}
               placeholder="••••••••"
             />
+            <TouchableOpacity style={styles.forgot} onPress={() => navigation.navigate('ForgotPassword')}>
+              <Text style={styles.forgotText}>Forgot password?</Text>
+            </TouchableOpacity>
           </View>
 
           <TouchableOpacity
@@ -170,10 +173,6 @@ export default function LoginScreen({ navigation }: any) {
             </>
           )}
         </View>
-
-        <TouchableOpacity style={styles.forgot} onPress={() => navigation.navigate('ForgotPassword')}>
-          <Text style={styles.forgotText}>Forgot password?</Text>
-        </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
           <Text style={styles.switchText}>
@@ -231,8 +230,8 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   biometricText: { fontFamily: font.semiBold, fontSize: 15, color: colors.primary },
-  forgot: { alignItems: 'center', marginBottom: spacing.sm },
-  forgotText: { fontFamily: font.semiBold, fontSize: 14, color: colors.textSecondary },
+  forgot: { alignSelf: 'flex-end', marginTop: spacing.xs },
+  forgotText: { fontFamily: font.semiBold, fontSize: 13, color: colors.textSecondary },
   switchText: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
   switchLink: { fontFamily: font.semiBold, color: colors.primary },
 });
