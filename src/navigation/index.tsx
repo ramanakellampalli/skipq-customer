@@ -83,7 +83,7 @@ function MainNavigator() {
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
-        tabBarButton: (props) => <TouchableOpacity {...props} activeOpacity={1} />,
+        tabBarButton: (props: any) => <TouchableOpacity {...props} activeOpacity={1} />,
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
