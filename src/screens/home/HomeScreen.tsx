@@ -247,7 +247,7 @@ export default function HomeScreen({ navigation }: any) {
 function SkeletonCard() {
   return (
     <View style={styles.card}>
-      <Skeleton width="100%" height={BANNER_HEIGHT} style={{ borderRadius: 0 }} />
+      <Skeleton width="100%" height={BANNER_HEIGHT} style={styles.skeletonBanner} />
       <View style={[styles.cardBody, { gap: spacing.xs }]}>
         <Skeleton width="55%" height={18} />
         <Skeleton width={90} height={13} />
@@ -405,4 +405,5 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', paddingTop: 60, gap: spacing.sm },
   emptyTitle: { fontFamily: font.semiBold, fontSize: 18, color: colors.textPrimary },
   emptySub: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary },
+  skeletonBanner: { borderRadius: 0 },
 });

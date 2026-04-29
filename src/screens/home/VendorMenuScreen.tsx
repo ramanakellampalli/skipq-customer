@@ -430,7 +430,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
                       {recentOrders.map(order => (
                         <ReorderCard key={order.id} order={order} onReorder={() => handleReorder(order)} />
                       ))}
-                      {recentOrders.length === 1 && <View style={{ flex: 1 }} />}
+                      {recentOrders.length === 1 && <View style={styles.reorderSpacer} />}
                     </View>
                   </View>
                 )}
@@ -671,6 +671,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
   },
+  reorderSpacer: { flex: 1 },
 });
 
 const pickerStyles = StyleSheet.create({
