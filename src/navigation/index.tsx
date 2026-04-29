@@ -82,6 +82,7 @@ function MainNavigator() {
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
+        tabBarPressColor: 'transparent',
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
