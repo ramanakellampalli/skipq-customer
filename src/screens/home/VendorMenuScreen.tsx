@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import {
   View, Text, SectionList, TouchableOpacity, StyleSheet,
   StatusBar, Alert, RefreshControl, Vibration, Modal,
@@ -15,7 +15,9 @@ import { useCartStore } from '../../store/cartStore';
 import { useStudentStore } from '../../store/studentStore';
 import CartSheet from '../../components/CartSheet';
 import ImageCarousel from '../../components/ImageCarousel';
+import ReorderCard from '../../components/ReorderCard';
 import Skeleton from '../../components/Skeleton';
+import { getLastVendorOrder, resolveReorderItems } from '../../utils/reorder';
 
 const CART_BAR_HEIGHT = 80;
 
@@ -155,8 +157,14 @@ export default function VendorMenuScreen({ route, navigation }: any) {
   const itemCount = useCartStore(s => s.itemCount());
   const total = useCartStore(s => s.total());
   const cartVendorId = useCartStore(s => s.vendorId);
-  const vendorImages = useStudentStore(s => s.vendorImages);
+  const vendorImages  = useStudentStore(s => s.vendorImages);
+  const pastOrders    = useStudentStore(s => s.pastOrders);
   const carouselImages = vendorImages[vendor.id] ?? [];
+
+  const lastOrder = useMemo(
+    () => getLastVendorOrder(pastOrders, vendor.id),
+    [pastOrders, vendor.id],
+  );
 
   const cartBarY = useSharedValue(CART_BAR_HEIGHT + 40);
   const cartBarStyle = useAnimatedStyle(() => ({
@@ -253,6 +261,48 @@ export default function VendorMenuScreen({ route, navigation }: any) {
       setPickerItem(item);
     }
   };
+
+  const handleReorder = useCallback(() => {
+    if (!lastOrder) return;
+    if (!vendor.isOpen) {
+      Alert.alert('Vendor is closed', 'This vendor is not accepting orders right now.');
+      return;
+    }
+    const { available, skippedCount } = resolveReorderItems(lastOrder, categories, uncategorized);
+    if (available.length === 0) {
+      Alert.alert('Nothing available', 'None of your previous items are currently on the menu.');
+      return;
+    }
+    const doAdd = () => {
+      available.forEach(item => {
+        addItem(vendor.id, vendor.name, {
+          variantId: item.variantId,
+          menuItemId: item.menuItemId,
+          name: item.name,
+          variantLabel: item.variantLabel,
+          price: item.price,
+        });
+        for (let i = 1; i < item.quantity; i++) incrementItem(item.variantId);
+      });
+      if (skippedCount > 0) {
+        Alert.alert('Some items skipped', `${skippedCount} item${skippedCount > 1 ? 's' : ''} from your last order ${skippedCount > 1 ? 'are' : 'is'} no longer available and ${skippedCount > 1 ? 'were' : 'was'} skipped.`);
+      }
+      setCartVisible(true);
+    };
+    const currentCartVendorId = useCartStore.getState().vendorId;
+    if (currentCartVendorId && currentCartVendorId !== vendor.id) {
+      Alert.alert(
+        'Replace cart?',
+        `You have items from another vendor. Clear your cart to reorder from ${vendor.name}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Clear & Reorder', style: 'destructive', onPress: () => { useCartStore.getState().clear(); doAdd(); } },
+        ],
+      );
+    } else {
+      doAdd();
+    }
+  }, [lastOrder, vendor, categories, uncategorized, addItem, incrementItem]);
 
   const priceRange = (item: MenuItem) => {
     const prices = item.variants.filter(v => v.isAvailable).map(v => v.price);
@@ -370,7 +420,14 @@ export default function VendorMenuScreen({ route, navigation }: any) {
           ref={sectionListRef}
           sections={sections}
           keyExtractor={item => item.id}
-          ListHeaderComponent={carouselImages.length > 0 ? <ImageCarousel images={carouselImages} /> : null}
+          ListHeaderComponent={
+            (lastOrder || carouselImages.length > 0) ? (
+              <>
+                {lastOrder && <ReorderCard order={lastOrder} onReorder={handleReorder} />}
+                {carouselImages.length > 0 && <ImageCarousel images={carouselImages} />}
+              </>
+            ) : null
+          }
           renderItem={({ item }) => renderMenuItem(item)}
           renderSectionHeader={({ section }) => (
             <View style={styles.sectionHeader}>
