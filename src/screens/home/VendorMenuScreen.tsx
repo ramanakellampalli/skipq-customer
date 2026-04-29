@@ -203,7 +203,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
   }, [vendor.id]);
 
   const sections: Section[] = [
-    ...categories.map(cat => ({ title: cat.name, key: cat.id, data: cat.items })),
+    ...categories.filter(cat => cat.items.length > 0).map(cat => ({ title: cat.name, key: cat.id, data: cat.items })),
     ...(uncategorized.length > 0 ? [{ title: 'Other', key: 'uncategorized', data: uncategorized }] : []),
   ];
 
