@@ -70,7 +70,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       <View style={styles.header}>
         <Text style={styles.title}>Order #{orderId.slice(0, 8).toUpperCase()}</Text>
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  title: { fontFamily: font.bold, fontSize: 22, color: colors.white },
+  title: { fontFamily: font.bold, fontSize: 22, color: colors.textPrimary },
   vendor: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary, marginTop: 4 },
   tracker: { padding: spacing.lg, gap: 0 },
   stepRow: { flexDirection: 'row', gap: spacing.md },
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   stepContent: { flex: 1, paddingBottom: spacing.lg, gap: 3 },
   stepLabel: { fontFamily: font.semiBold, fontSize: 15 },
   stepDone: { color: colors.success },
-  stepActive: { color: colors.white },
+  stepActive: { color: colors.primary },
   stepUpcoming: { color: colors.textSecondary },
   stepSublabel: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
   etaCard: {
@@ -273,5 +273,5 @@ const styles = StyleSheet.create({
   receiptLabel: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary },
   receiptValue: { fontFamily: font.medium, fontSize: 14, color: colors.textSecondary },
   receiptDivider: { height: 1, backgroundColor: colors.border },
-  receiptTotal: { fontFamily: font.bold, fontSize: 15, color: colors.white },
+  receiptTotal: { fontFamily: font.bold, fontSize: 15, color: colors.textPrimary },
 });

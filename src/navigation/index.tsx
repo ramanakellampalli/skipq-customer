@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -82,6 +83,7 @@ function MainNavigator() {
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
+        tabBarButton: (props: any) => <TouchableOpacity {...props} activeOpacity={1} />,
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,

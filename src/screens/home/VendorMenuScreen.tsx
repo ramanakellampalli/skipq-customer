@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import {
   View, Text, SectionList, TouchableOpacity, StyleSheet,
   StatusBar, Alert, RefreshControl, Vibration, Modal,
@@ -10,12 +10,14 @@ import Animated, {
 import { ArrowLeft, Plus, Minus, ShoppingCart, X } from 'lucide-react-native';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
-import { MenuItem, MenuVariant, MenuCategory } from '../../types';
+import { MenuItem, MenuVariant, MenuCategory, Order } from '../../types';
 import { useCartStore } from '../../store/cartStore';
 import { useStudentStore } from '../../store/studentStore';
 import CartSheet from '../../components/CartSheet';
 import ImageCarousel from '../../components/ImageCarousel';
+import ReorderCard from '../../components/ReorderCard';
 import Skeleton from '../../components/Skeleton';
+import { getRecentVendorOrders, resolveReorderItems } from '../../utils/reorder';
 
 const CART_BAR_HEIGHT = 80;
 
@@ -155,8 +157,14 @@ export default function VendorMenuScreen({ route, navigation }: any) {
   const itemCount = useCartStore(s => s.itemCount());
   const total = useCartStore(s => s.total());
   const cartVendorId = useCartStore(s => s.vendorId);
-  const vendorImages = useStudentStore(s => s.vendorImages);
+  const vendorImages  = useStudentStore(s => s.vendorImages);
+  const pastOrders    = useStudentStore(s => s.pastOrders);
   const carouselImages = vendorImages[vendor.id] ?? [];
+
+  const recentOrders = useMemo(
+    () => getRecentVendorOrders(pastOrders, vendor.id, 2),
+    [pastOrders, vendor.id],
+  );
 
   const cartBarY = useSharedValue(CART_BAR_HEIGHT + 40);
   const cartBarStyle = useAnimatedStyle(() => ({
@@ -195,7 +203,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
   }, [vendor.id]);
 
   const sections: Section[] = [
-    ...categories.map(cat => ({ title: cat.name, key: cat.id, data: cat.items })),
+    ...categories.filter(cat => cat.items.length > 0).map(cat => ({ title: cat.name, key: cat.id, data: cat.items })),
     ...(uncategorized.length > 0 ? [{ title: 'Other', key: 'uncategorized', data: uncategorized }] : []),
   ];
 
@@ -253,6 +261,47 @@ export default function VendorMenuScreen({ route, navigation }: any) {
       setPickerItem(item);
     }
   };
+
+  const handleReorder = useCallback((order: Order) => {
+    if (!vendor.isOpen) {
+      Alert.alert('Vendor is closed', 'This vendor is not accepting orders right now.');
+      return;
+    }
+    const { available, skippedCount } = resolveReorderItems(order, categories, uncategorized);
+    if (available.length === 0) {
+      Alert.alert('Nothing available', 'None of your previous items are currently on the menu.');
+      return;
+    }
+    const doAdd = () => {
+      available.forEach(item => {
+        addItem(vendor.id, vendor.name, {
+          variantId: item.variantId,
+          menuItemId: item.menuItemId,
+          name: item.name,
+          variantLabel: item.variantLabel,
+          price: item.price,
+        });
+        for (let i = 1; i < item.quantity; i++) incrementItem(item.variantId);
+      });
+      if (skippedCount > 0) {
+        Alert.alert('Some items skipped', `${skippedCount} item${skippedCount > 1 ? 's' : ''} from your previous order ${skippedCount > 1 ? 'are' : 'is'} no longer available and ${skippedCount > 1 ? 'were' : 'was'} skipped.`);
+      }
+      setCartVisible(true);
+    };
+    const currentCartVendorId = useCartStore.getState().vendorId;
+    if (currentCartVendorId && currentCartVendorId !== vendor.id) {
+      Alert.alert(
+        'Replace cart?',
+        `You have items from another vendor. Clear your cart to reorder from ${vendor.name}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Clear & Reorder', style: 'destructive', onPress: () => { useCartStore.getState().clear(); doAdd(); } },
+        ],
+      );
+    } else {
+      doAdd();
+    }
+  }, [vendor, categories, uncategorized, addItem, incrementItem]);
 
   const priceRange = (item: MenuItem) => {
     const prices = item.variants.filter(v => v.isAvailable).map(v => v.price);
@@ -313,11 +362,11 @@ export default function VendorMenuScreen({ route, navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.surface} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
 
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <ArrowLeft size={22} color={colors.white} />
+          <ArrowLeft size={22} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={styles.headerInfo}>
           <Text style={styles.vendorName}>{vendor.name}</Text>
@@ -325,7 +374,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
         </View>
         {showCartBar && (
           <TouchableOpacity style={styles.cartIconBtn} onPress={() => setCartVisible(true)}>
-            <ShoppingCart size={20} color={colors.white} />
+            <ShoppingCart size={20} color={colors.textPrimary} />
             <View style={styles.cartBadge}>
               <Text style={styles.cartBadgeText}>{itemCount}</Text>
             </View>
@@ -370,7 +419,24 @@ export default function VendorMenuScreen({ route, navigation }: any) {
           ref={sectionListRef}
           sections={sections}
           keyExtractor={item => item.id}
-          ListHeaderComponent={carouselImages.length > 0 ? <ImageCarousel images={carouselImages} /> : null}
+          ListHeaderComponent={
+            (recentOrders.length > 0 || carouselImages.length > 0) ? (
+              <>
+                {carouselImages.length > 0 && <ImageCarousel images={carouselImages} />}
+                {recentOrders.length > 0 && (
+                  <View style={styles.reorderSection}>
+                    <Text style={styles.reorderLabel}>Order Again</Text>
+                    <View style={styles.reorderGrid}>
+                      {recentOrders.map(order => (
+                        <ReorderCard key={order.id} order={order} onReorder={() => handleReorder(order)} />
+                      ))}
+                      {recentOrders.length === 1 && <View style={styles.reorderSpacer} />}
+                    </View>
+                  </View>
+                )}
+              </>
+            ) : null
+          }
           renderItem={({ item }) => renderMenuItem(item)}
           renderSectionHeader={({ section }) => (
             <View style={styles.sectionHeader}>
@@ -460,7 +526,7 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: 4 },
   headerInfo: { flex: 1 },
-  vendorName: { fontFamily: font.bold, fontSize: 18, color: colors.white },
+  vendorName: { fontFamily: font.bold, fontSize: 18, color: colors.textPrimary },
   vendorMeta: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
   cartIconBtn: { padding: 8, position: 'relative' },
   cartBadge: {
@@ -557,7 +623,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   qtyBtn: { padding: 8 },
-  qtyText: { fontFamily: font.bold, fontSize: 14, color: colors.white, minWidth: 24, textAlign: 'center' },
+  qtyText: { fontFamily: font.bold, fontSize: 14, color: colors.textPrimary, minWidth: 24, textAlign: 'center' },
   cartBarWrapper: {
     position: 'absolute',
     bottom: 24,
@@ -589,6 +655,23 @@ const styles = StyleSheet.create({
   cartBarTotal: { fontFamily: font.bold, fontSize: 15, color: colors.white },
   skeletonMeta: { marginTop: 6 },
   listContent: { paddingBottom: 110 },
+  reorderSection: {
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xs,
+  },
+  reorderLabel: {
+    fontFamily: font.bold,
+    fontSize: 13,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: spacing.sm,
+  },
+  reorderGrid: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  reorderSpacer: { flex: 1 },
 });
 
 const pickerStyles = StyleSheet.create({
@@ -609,7 +692,7 @@ const pickerStyles = StyleSheet.create({
   },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   vegDot: { width: 10, height: 10, borderRadius: 5, marginTop: 2 },
-  itemName: { fontFamily: font.bold, fontSize: 17, color: colors.white },
+  itemName: { fontFamily: font.bold, fontSize: 17, color: colors.textPrimary },
   itemDesc: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary, marginTop: 4, marginLeft: 16 },
   closeBtn: {
     width: 32, height: 32,
@@ -648,7 +731,7 @@ const pickerStyles = StyleSheet.create({
     overflow: 'hidden',
   },
   qtyBtn: { padding: 8 },
-  qtyText: { fontFamily: font.bold, fontSize: 14, color: colors.white, minWidth: 24, textAlign: 'center' },
+  qtyText: { fontFamily: font.bold, fontSize: 14, color: colors.textPrimary, minWidth: 24, textAlign: 'center' },
   headerInfo: { flex: 1 },
   variantInfo: { flex: 1 },
 });

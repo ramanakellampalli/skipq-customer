@@ -88,7 +88,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       <View style={styles.header}>
         <Text style={styles.title}>Profile</Text>
@@ -183,7 +183,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: { paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md },
-  title: { fontFamily: font.bold, fontSize: 22, color: colors.white },
+  title: { fontFamily: font.bold, fontSize: 22, color: colors.textPrimary },
   avatarSection: { alignItems: 'center', paddingVertical: spacing.xl, gap: spacing.sm },
   avatar: {
     width: 80, height: 80, borderRadius: 40,
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   avatarText: { fontFamily: font.bold, fontSize: 28, color: colors.white },
-  name: { fontFamily: font.bold, fontSize: 20, color: colors.white },
+  name: { fontFamily: font.bold, fontSize: 20, color: colors.textPrimary },
   section: {
     marginHorizontal: spacing.md,
     backgroundColor: colors.surface,
