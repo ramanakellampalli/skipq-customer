@@ -21,7 +21,11 @@ export default function ForgotPasswordScreen({ navigation }: any) {
       await api.auth.forgotPassword(email.trim());
       navigation.navigate('ResetPassword', { email: email.trim() });
     } catch (err: any) {
-      Alert.alert('Error', err.response?.data?.message || 'Something went wrong');
+      const status = err.response?.status;
+      const msg = status === 404
+        ? 'No account found for this email'
+        : err.response?.data?.message || 'Something went wrong';
+      Alert.alert('Error', msg);
     } finally {
       setLoading(false);
     }
