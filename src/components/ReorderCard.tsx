@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { RotateCcw, ChevronRight } from 'lucide-react-native';
+import { RotateCcw } from 'lucide-react-native';
 import { Order } from '../types';
-import { colors, font, spacing } from '../theme';
+import { colors, font, radius, spacing } from '../theme';
 
 interface Props {
   order: Order;
@@ -13,32 +13,47 @@ export default function ReorderCard({ order, onReorder }: Props) {
   const summary = order.items.map(i => (i.quantity > 1 ? `${i.quantity}× ${i.name}` : i.name)).join(', ');
 
   return (
-    <TouchableOpacity style={styles.row} onPress={onReorder} activeOpacity={0.7}>
-      <RotateCcw size={15} color={colors.primary} />
-      <View style={styles.info}>
-        <Text style={styles.items} numberOfLines={1}>{summary}</Text>
-        <Text style={styles.meta}>₹{order.pricing.totalAmount.toFixed(2)} · last order</Text>
-      </View>
-      <Text style={styles.action}>Reorder</Text>
-      <ChevronRight size={14} color={colors.primary} />
-    </TouchableOpacity>
+    <View style={styles.card}>
+      <Text style={styles.items} numberOfLines={2}>{summary}</Text>
+      <Text style={styles.total}>₹{order.pricing.totalAmount.toFixed(2)}</Text>
+      <TouchableOpacity style={styles.btn} onPress={onReorder} activeOpacity={0.85}>
+        <RotateCcw size={12} color={colors.primary} />
+        <Text style={styles.btnText}>Reorder</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
+  card: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.sm,
+    gap: spacing.xs,
+  },
+  items: {
+    fontFamily: font.medium,
+    fontSize: 12,
+    color: colors.textPrimary,
+    lineHeight: 17,
+  },
+  total: {
+    fontFamily: font.bold,
+    fontSize: 13,
+    color: colors.textPrimary,
+  },
+  btn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    gap: 4,
+    marginTop: 2,
   },
-  info: { flex: 1 },
-  items: { fontFamily: font.medium, fontSize: 13, color: colors.textPrimary },
-  meta: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary, marginTop: 2 },
-  action: { fontFamily: font.bold, fontSize: 13, color: colors.primary },
+  btnText: {
+    fontFamily: font.semiBold,
+    fontSize: 12,
+    color: colors.primary,
+  },
 });

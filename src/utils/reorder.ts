@@ -14,10 +14,11 @@ export interface ReorderResult {
   skippedCount: number;
 }
 
-export function getLastVendorOrder(pastOrders: Order[], vendorId: string): Order | null {
+export function getRecentVendorOrders(pastOrders: Order[], vendorId: string, limit = 2): Order[] {
   return pastOrders
     .filter(o => o.vendor.id === vendorId && o.state.orderStatus === 'COMPLETED')
-    .sort((a, b) => new Date(b.timeline.createdAt).getTime() - new Date(a.timeline.createdAt).getTime())[0] ?? null;
+    .sort((a, b) => new Date(b.timeline.createdAt).getTime() - new Date(a.timeline.createdAt).getTime())
+    .slice(0, limit);
 }
 
 function buildVariantLookup(categories: MenuCategory[], uncategorized: MenuItem[]) {

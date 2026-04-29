@@ -10,14 +10,14 @@ import Animated, {
 import { ArrowLeft, Plus, Minus, ShoppingCart, X } from 'lucide-react-native';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
-import { MenuItem, MenuVariant, MenuCategory } from '../../types';
+import { MenuItem, MenuVariant, MenuCategory, Order } from '../../types';
 import { useCartStore } from '../../store/cartStore';
 import { useStudentStore } from '../../store/studentStore';
 import CartSheet from '../../components/CartSheet';
 import ImageCarousel from '../../components/ImageCarousel';
 import ReorderCard from '../../components/ReorderCard';
 import Skeleton from '../../components/Skeleton';
-import { getLastVendorOrder, resolveReorderItems } from '../../utils/reorder';
+import { getRecentVendorOrders, resolveReorderItems } from '../../utils/reorder';
 
 const CART_BAR_HEIGHT = 80;
 
@@ -161,8 +161,8 @@ export default function VendorMenuScreen({ route, navigation }: any) {
   const pastOrders    = useStudentStore(s => s.pastOrders);
   const carouselImages = vendorImages[vendor.id] ?? [];
 
-  const lastOrder = useMemo(
-    () => getLastVendorOrder(pastOrders, vendor.id),
+  const recentOrders = useMemo(
+    () => getRecentVendorOrders(pastOrders, vendor.id, 2),
     [pastOrders, vendor.id],
   );
 
@@ -262,13 +262,12 @@ export default function VendorMenuScreen({ route, navigation }: any) {
     }
   };
 
-  const handleReorder = useCallback(() => {
-    if (!lastOrder) return;
+  const handleReorder = useCallback((order: Order) => {
     if (!vendor.isOpen) {
       Alert.alert('Vendor is closed', 'This vendor is not accepting orders right now.');
       return;
     }
-    const { available, skippedCount } = resolveReorderItems(lastOrder, categories, uncategorized);
+    const { available, skippedCount } = resolveReorderItems(order, categories, uncategorized);
     if (available.length === 0) {
       Alert.alert('Nothing available', 'None of your previous items are currently on the menu.');
       return;
@@ -285,7 +284,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
         for (let i = 1; i < item.quantity; i++) incrementItem(item.variantId);
       });
       if (skippedCount > 0) {
-        Alert.alert('Some items skipped', `${skippedCount} item${skippedCount > 1 ? 's' : ''} from your last order ${skippedCount > 1 ? 'are' : 'is'} no longer available and ${skippedCount > 1 ? 'were' : 'was'} skipped.`);
+        Alert.alert('Some items skipped', `${skippedCount} item${skippedCount > 1 ? 's' : ''} from your previous order ${skippedCount > 1 ? 'are' : 'is'} no longer available and ${skippedCount > 1 ? 'were' : 'was'} skipped.`);
       }
       setCartVisible(true);
     };
@@ -302,7 +301,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
     } else {
       doAdd();
     }
-  }, [lastOrder, vendor, categories, uncategorized, addItem, incrementItem]);
+  }, [vendor, categories, uncategorized, addItem, incrementItem]);
 
   const priceRange = (item: MenuItem) => {
     const prices = item.variants.filter(v => v.isAvailable).map(v => v.price);
@@ -421,10 +420,20 @@ export default function VendorMenuScreen({ route, navigation }: any) {
           sections={sections}
           keyExtractor={item => item.id}
           ListHeaderComponent={
-            (lastOrder || carouselImages.length > 0) ? (
+            (recentOrders.length > 0 || carouselImages.length > 0) ? (
               <>
-                {lastOrder && <ReorderCard order={lastOrder} onReorder={handleReorder} />}
                 {carouselImages.length > 0 && <ImageCarousel images={carouselImages} />}
+                {recentOrders.length > 0 && (
+                  <View style={styles.reorderSection}>
+                    <Text style={styles.reorderLabel}>Order Again</Text>
+                    <View style={styles.reorderGrid}>
+                      {recentOrders.map(order => (
+                        <ReorderCard key={order.id} order={order} onReorder={() => handleReorder(order)} />
+                      ))}
+                      {recentOrders.length === 1 && <View style={{ flex: 1 }} />}
+                    </View>
+                  </View>
+                )}
               </>
             ) : null
           }
@@ -646,6 +655,22 @@ const styles = StyleSheet.create({
   cartBarTotal: { fontFamily: font.bold, fontSize: 15, color: colors.white },
   skeletonMeta: { marginTop: 6 },
   listContent: { paddingBottom: 110 },
+  reorderSection: {
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xs,
+  },
+  reorderLabel: {
+    fontFamily: font.bold,
+    fontSize: 13,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: spacing.sm,
+  },
+  reorderGrid: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
 });
 
 const pickerStyles = StyleSheet.create({
