@@ -19,6 +19,10 @@ export const api = {
       client.post<{ token: string; userId: string; name: string; email: string }>('/api/v1/auth/login', { email, password }),
     verifyOtp: (email: string, otp: string) =>
       client.post<{ token: string; userId: string; name: string; email: string }>('/api/v1/auth/verify-otp', { email, code: otp }),
+    forgotPassword: (email: string) =>
+      client.post('/api/v1/auth/forgot-password', { email, role: 'STUDENT' }),
+    resetPassword: (email: string, otp: string, newPassword: string) =>
+      client.post('/api/v1/auth/reset-password', { email, role: 'STUDENT', otp, newPassword }),
   },
 
   support: {
