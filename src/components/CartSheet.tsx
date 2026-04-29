@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  headerTitle: { fontFamily: font.bold, fontSize: 18, color: colors.white },
+  headerTitle: { fontFamily: font.bold, fontSize: 18, color: colors.textPrimary },
   closeBtn: {
     width: 36, height: 36,
     borderRadius: radius.full,
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   qtyBtn: { padding: 8 },
-  qtyText: { fontFamily: font.bold, fontSize: 13, color: colors.white, minWidth: 22, textAlign: 'center' },
+  qtyText: { fontFamily: font.bold, fontSize: 13, color: colors.textPrimary, minWidth: 22, textAlign: 'center' },
   footer: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
@@ -269,8 +269,8 @@ const styles = StyleSheet.create({
   taxNote: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary, opacity: 0.7, paddingLeft: 20, fontStyle: 'italic' },
   subValue: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary, opacity: 0.75 },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.xs },
-  totalLabel: { fontFamily: font.semiBold, fontSize: 15, color: colors.white },
-  totalValue: { fontFamily: font.bold, fontSize: 20, color: colors.white },
+  totalLabel: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
+  totalValue: { fontFamily: font.bold, fontSize: 20, color: colors.textPrimary },
   placeBtn: {
     backgroundColor: colors.primary,
     borderRadius: radius.lg,

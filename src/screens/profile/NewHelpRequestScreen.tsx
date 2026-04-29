@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  headerTitle: { fontFamily: font.bold, fontSize: 18, color: colors.white },
+  headerTitle: { fontFamily: font.bold, fontSize: 18, color: colors.textPrimary },
   backBtn: { width: 60 },
   backText: { fontFamily: font.semiBold, fontSize: 16, color: colors.primary },
   content: { padding: spacing.md, gap: spacing.lg },

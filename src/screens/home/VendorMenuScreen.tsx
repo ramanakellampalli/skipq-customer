@@ -313,11 +313,11 @@ export default function VendorMenuScreen({ route, navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.surface} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
 
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <ArrowLeft size={22} color={colors.white} />
+          <ArrowLeft size={22} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={styles.headerInfo}>
           <Text style={styles.vendorName}>{vendor.name}</Text>
@@ -325,7 +325,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
         </View>
         {showCartBar && (
           <TouchableOpacity style={styles.cartIconBtn} onPress={() => setCartVisible(true)}>
-            <ShoppingCart size={20} color={colors.white} />
+            <ShoppingCart size={20} color={colors.textPrimary} />
             <View style={styles.cartBadge}>
               <Text style={styles.cartBadgeText}>{itemCount}</Text>
             </View>
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: 4 },
   headerInfo: { flex: 1 },
-  vendorName: { fontFamily: font.bold, fontSize: 18, color: colors.white },
+  vendorName: { fontFamily: font.bold, fontSize: 18, color: colors.textPrimary },
   vendorMeta: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
   cartIconBtn: { padding: 8, position: 'relative' },
   cartBadge: {
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   qtyBtn: { padding: 8 },
-  qtyText: { fontFamily: font.bold, fontSize: 14, color: colors.white, minWidth: 24, textAlign: 'center' },
+  qtyText: { fontFamily: font.bold, fontSize: 14, color: colors.textPrimary, minWidth: 24, textAlign: 'center' },
   cartBarWrapper: {
     position: 'absolute',
     bottom: 24,
@@ -609,7 +609,7 @@ const pickerStyles = StyleSheet.create({
   },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   vegDot: { width: 10, height: 10, borderRadius: 5, marginTop: 2 },
-  itemName: { fontFamily: font.bold, fontSize: 17, color: colors.white },
+  itemName: { fontFamily: font.bold, fontSize: 17, color: colors.textPrimary },
   itemDesc: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary, marginTop: 4, marginLeft: 16 },
   closeBtn: {
     width: 32, height: 32,
@@ -648,7 +648,7 @@ const pickerStyles = StyleSheet.create({
     overflow: 'hidden',
   },
   qtyBtn: { padding: 8 },
-  qtyText: { fontFamily: font.bold, fontSize: 14, color: colors.white, minWidth: 24, textAlign: 'center' },
+  qtyText: { fontFamily: font.bold, fontSize: 14, color: colors.textPrimary, minWidth: 24, textAlign: 'center' },
   headerInfo: { flex: 1 },
   variantInfo: { flex: 1 },
 });

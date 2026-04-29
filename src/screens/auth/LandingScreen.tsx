@@ -9,7 +9,7 @@ export default function LandingScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       <View style={styles.hero}>
         <View style={styles.logoRow}>
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   logoSkip: {
     fontFamily: font.extraBold,
     fontSize: 56,
-    color: colors.white,
+    color: colors.textPrimary,
     letterSpacing: -1,
   },
   logoQ: {

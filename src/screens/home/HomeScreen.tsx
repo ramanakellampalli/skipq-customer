@@ -107,7 +107,7 @@ export default function HomeScreen({ navigation }: any) {
   if (isInitialLoad) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+        <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
         {ListHeader}
         {[1, 2, 3, 4].map(k => <SkeletonCard key={k} />)}
       </View>
@@ -116,7 +116,7 @@ export default function HomeScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       <FlatList
         data={listData}
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: spacing.md },
   locationText: { fontFamily: font.semiBold, fontSize: 13, color: colors.primary },
   greeting: { fontFamily: font.regular, fontSize: 15, color: colors.textSecondary },
-  userName: { fontFamily: font.bold, fontSize: 26, color: colors.white, marginBottom: spacing.lg },
+  userName: { fontFamily: font.bold, fontSize: 26, color: colors.textPrimary, marginBottom: spacing.lg },
   sectionLabel: { marginBottom: spacing.sm },
   sectionTitle: { fontFamily: font.semiBold, fontSize: 13, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
   card: {
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   },
   cartCountText: { fontFamily: font.bold, fontSize: 10, color: colors.white },
   cardBottom: { gap: 4 },
-  vendorName: { fontFamily: font.bold, fontSize: 18, color: colors.white },
+  vendorName: { fontFamily: font.bold, fontSize: 18, color: colors.textPrimary },
   textDimmed: { color: colors.textSecondary },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   metaText: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },

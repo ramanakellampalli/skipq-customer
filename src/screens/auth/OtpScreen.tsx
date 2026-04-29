@@ -87,7 +87,7 @@ export default function OtpScreen({ route, navigation }: any) {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
       <View style={styles.inner}>
         <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>← Back</Text>
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   back: { marginBottom: spacing.xl },
   backText: { fontFamily: font.medium, fontSize: 15, color: colors.textSecondary },
   header: { marginBottom: 40 },
-  title: { fontFamily: font.bold, fontSize: 28, color: colors.white, marginBottom: 10 },
+  title: { fontFamily: font.bold, fontSize: 28, color: colors.textPrimary, marginBottom: 10 },
   subtitle: { fontFamily: font.regular, fontSize: 15, color: colors.textSecondary, lineHeight: 24 },
   emailHighlight: { fontFamily: font.semiBold, color: colors.textPrimary },
   otpRow: {
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     fontSize: 22,
     fontFamily: font.bold,
-    color: colors.white,
+    color: colors.textPrimary,
   },
   otpBoxFilled: { borderColor: colors.primary },
   btn: {

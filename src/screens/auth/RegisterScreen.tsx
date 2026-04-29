@@ -43,7 +43,7 @@ export default function RegisterScreen({ navigation }: any) {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
       <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
         <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>← Back</Text>
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   back: { marginBottom: spacing.xl },
   backText: { fontFamily: font.medium, fontSize: 15, color: colors.textSecondary },
   header: { marginBottom: spacing.xl },
-  title: { fontFamily: font.bold, fontSize: 28, color: colors.white, marginBottom: 6 },
+  title: { fontFamily: font.bold, fontSize: 28, color: colors.textPrimary, marginBottom: 6 },
   subtitle: { fontFamily: font.regular, fontSize: 15, color: colors.textSecondary, lineHeight: 22 },
   form: { gap: spacing.md, marginBottom: spacing.xl },
   field: { gap: spacing.xs },

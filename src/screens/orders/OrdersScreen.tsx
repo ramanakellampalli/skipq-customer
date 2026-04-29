@@ -98,7 +98,7 @@ export default function OrdersScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       <FlatList
         data={filtered}
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   list: { paddingBottom: spacing.xl },
   emptyContainer: { flex: 1 },
   header: { paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md },
-  title: { fontFamily: font.bold, fontSize: 22, color: colors.white },
+  title: { fontFamily: font.bold, fontSize: 22, color: colors.textPrimary },
   activeCard: {
     marginHorizontal: spacing.md,
     marginBottom: spacing.md,
@@ -199,11 +199,11 @@ const styles = StyleSheet.create({
   activeLive: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primary },
   liveText: { fontFamily: font.bold, fontSize: 12, color: colors.primary },
-  activeVendor: { fontFamily: font.bold, fontSize: 17, color: colors.white },
+  activeVendor: { fontFamily: font.bold, fontSize: 17, color: colors.textPrimary },
   activeItems: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
   activeFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
   activeStatus: { fontFamily: font.semiBold, fontSize: 13 },
-  activeTotal: { fontFamily: font.bold, fontSize: 15, color: colors.white },
+  activeTotal: { fontFamily: font.bold, fontSize: 15, color: colors.textPrimary },
   sectionRow: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.xs },
   sectionLabel: { fontFamily: font.semiBold, fontSize: 12, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
   filterRow: {
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   pastHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   pastId: { fontFamily: font.bold, fontSize: 13, color: colors.textSecondary },
   pastStatus: { fontFamily: font.semiBold, fontSize: 12 },
-  pastVendor: { fontFamily: font.semiBold, fontSize: 15, color: colors.white },
+  pastVendor: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
   pastItems: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
   pastFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
   pastTotal: { fontFamily: font.bold, fontSize: 14, color: colors.primary },

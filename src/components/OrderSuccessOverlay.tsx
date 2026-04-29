@@ -73,6 +73,6 @@ const styles = StyleSheet.create({
     borderColor: colors.success,
   },
   checkmark: { fontSize: 36, color: colors.success },
-  title: { fontFamily: font.bold, fontSize: 22, color: colors.white },
+  title: { fontFamily: font.bold, fontSize: 22, color: colors.textPrimary },
   sub: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
 });
