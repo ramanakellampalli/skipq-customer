@@ -10,7 +10,7 @@ import Animated, {
 import { ArrowLeft, Plus, Minus, ShoppingCart, X } from 'lucide-react-native';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
-import { MenuItem, MenuVariant, MenuCategory, Order } from '../../types';
+import { MenuItem, MenuVariant, Order } from '../../types';
 import { useCartStore } from '../../store/cartStore';
 import { useStudentStore } from '../../store/studentStore';
 import CartSheet from '../../components/CartSheet';
@@ -139,8 +139,7 @@ type Section = { title: string; key: string; data: MenuItem[] };
 
 export default function VendorMenuScreen({ route, navigation }: any) {
   const { vendor } = route.params;
-  const [categories, setCategories] = useState<MenuCategory[]>([]);
-  const [uncategorized, setUncategorized] = useState<MenuItem[]>([]);
+  const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [cartVisible, setCartVisible] = useState(false);
@@ -180,10 +179,9 @@ export default function VendorMenuScreen({ route, navigation }: any) {
   const fetchMenu = useCallback(async () => {
     try {
       const res = await api.student.getMenu(vendor.id);
-      setCategories(res.data.categories);
-      setUncategorized(res.data.uncategorized);
-      const firstKey = res.data.categories[0]?.id ?? (res.data.uncategorized.length > 0 ? 'uncategorized' : '');
-      setActiveTab(firstKey);
+      setItems(res.data.items);
+      const firstCategory = res.data.items[0]?.category ?? 'Other';
+      setActiveTab(firstCategory);
     } finally {
       setLoading(false);
     }
@@ -195,17 +193,22 @@ export default function VendorMenuScreen({ route, navigation }: any) {
     setIsRefreshing(true);
     try {
       const res = await api.student.getMenu(vendor.id);
-      setCategories(res.data.categories);
-      setUncategorized(res.data.uncategorized);
+      setItems(res.data.items);
     } finally {
       setIsRefreshing(false);
     }
   }, [vendor.id]);
 
-  const sections: Section[] = [
-    ...categories.filter(cat => cat.items.length > 0).map(cat => ({ title: cat.name, key: cat.id, data: cat.items })),
-    ...(uncategorized.length > 0 ? [{ title: 'Other', key: 'uncategorized', data: uncategorized }] : []),
-  ];
+  const sections: Section[] = useMemo(() => {
+    const map = new Map<string, MenuItem[]>();
+    for (const item of items) {
+      const key = item.category || 'Other';
+      const group = map.get(key) ?? [];
+      group.push(item);
+      map.set(key, group);
+    }
+    return [...map.entries()].map(([title, data]) => ({ title, key: title, data }));
+  }, [items]);
 
   const handleTabPress = (key: string, index: number) => {
     setActiveTab(key);
@@ -267,7 +270,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
       Alert.alert('Vendor is closed', 'This vendor is not accepting orders right now.');
       return;
     }
-    const { available, skippedCount } = resolveReorderItems(order, categories, uncategorized);
+    const { available, skippedCount } = resolveReorderItems(order, items);
     if (available.length === 0) {
       Alert.alert('Nothing available', 'None of your previous items are currently on the menu.');
       return;
@@ -301,7 +304,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
     } else {
       doAdd();
     }
-  }, [vendor, categories, uncategorized, addItem, incrementItem]);
+  }, [vendor, items, addItem, incrementItem]);
 
   const priceRange = (item: MenuItem) => {
     const prices = item.variants.filter(v => v.isAvailable).map(v => v.price);

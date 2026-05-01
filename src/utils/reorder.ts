@@ -1,4 +1,4 @@
-import { Order, MenuCategory, MenuItem, MenuVariant } from '../types';
+import { Order, MenuItem, MenuVariant } from '../types';
 
 export interface ReorderItem {
   variantId: string;
@@ -21,20 +21,16 @@ export function getRecentVendorOrders(pastOrders: Order[], vendorId: string, lim
     .slice(0, limit);
 }
 
-function buildVariantLookup(categories: MenuCategory[], uncategorized: MenuItem[]) {
+function buildVariantLookup(items: MenuItem[]) {
   const map = new Map<string, { variant: MenuVariant; item: MenuItem }>();
-  [...categories.flatMap(c => c.items), ...uncategorized].forEach(item => {
+  items.forEach(item => {
     item.variants.forEach(variant => map.set(variant.id, { variant, item }));
   });
   return map;
 }
 
-export function resolveReorderItems(
-  order: Order,
-  categories: MenuCategory[],
-  uncategorized: MenuItem[],
-): ReorderResult {
-  const lookup = buildVariantLookup(categories, uncategorized);
+export function resolveReorderItems(order: Order, items: MenuItem[]): ReorderResult {
+  const lookup = buildVariantLookup(items);
   const available: ReorderItem[] = [];
   let skippedCount = 0;
 
