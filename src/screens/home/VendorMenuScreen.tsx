@@ -315,7 +315,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
   };
 
   const renderMenuItem = (item: MenuItem) => {
-    const unavailable = !item.isAvailable || item.variants.every(v => !v.isAvailable);
+    const unavailable = !item.isAvailable;
     const totalQty = getItemTotalQty(item);
     const hasMultiVariant = item.variants.filter(v => v.isAvailable).length > 1;
 
