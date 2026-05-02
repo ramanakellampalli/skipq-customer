@@ -10,7 +10,7 @@ import Animated, {
 import { ArrowLeft, Plus, Minus, ShoppingCart, X } from 'lucide-react-native';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
-import { MenuItem, MenuVariant, MenuCategory, Order } from '../../types';
+import { MenuItem, MenuVariant, Order } from '../../types';
 import { useCartStore } from '../../store/cartStore';
 import { useStudentStore } from '../../store/studentStore';
 import CartSheet from '../../components/CartSheet';
@@ -139,8 +139,7 @@ type Section = { title: string; key: string; data: MenuItem[] };
 
 export default function VendorMenuScreen({ route, navigation }: any) {
   const { vendor } = route.params;
-  const [categories, setCategories] = useState<MenuCategory[]>([]);
-  const [uncategorized, setUncategorized] = useState<MenuItem[]>([]);
+  const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [cartVisible, setCartVisible] = useState(false);
@@ -180,10 +179,9 @@ export default function VendorMenuScreen({ route, navigation }: any) {
   const fetchMenu = useCallback(async () => {
     try {
       const res = await api.student.getMenu(vendor.id);
-      setCategories(res.data.categories);
-      setUncategorized(res.data.uncategorized);
-      const firstKey = res.data.categories[0]?.id ?? (res.data.uncategorized.length > 0 ? 'uncategorized' : '');
-      setActiveTab(firstKey);
+      setItems(res.data.items);
+      const firstCategory = res.data.items[0]?.category ?? 'Other';
+      setActiveTab(firstCategory);
     } finally {
       setLoading(false);
     }
@@ -195,17 +193,22 @@ export default function VendorMenuScreen({ route, navigation }: any) {
     setIsRefreshing(true);
     try {
       const res = await api.student.getMenu(vendor.id);
-      setCategories(res.data.categories);
-      setUncategorized(res.data.uncategorized);
+      setItems(res.data.items);
     } finally {
       setIsRefreshing(false);
     }
   }, [vendor.id]);
 
-  const sections: Section[] = [
-    ...categories.filter(cat => cat.items.length > 0).map(cat => ({ title: cat.name, key: cat.id, data: cat.items })),
-    ...(uncategorized.length > 0 ? [{ title: 'Other', key: 'uncategorized', data: uncategorized }] : []),
-  ];
+  const sections: Section[] = useMemo(() => {
+    const map = new Map<string, MenuItem[]>();
+    for (const item of items) {
+      const key = item.category || 'Other';
+      const group = map.get(key) ?? [];
+      group.push(item);
+      map.set(key, group);
+    }
+    return [...map.entries()].map(([title, data]) => ({ title, key: title, data }));
+  }, [items]);
 
   const handleTabPress = (key: string, index: number) => {
     setActiveTab(key);
@@ -215,48 +218,44 @@ export default function VendorMenuScreen({ route, navigation }: any) {
   const getVariantQty = (variantId: string) =>
     cartItems.find(i => i.variantId === variantId)?.quantity ?? 0;
 
-  const getItemTotalQty = (item: MenuItem) =>
-    item.variants.reduce((sum, v) => sum + getVariantQty(v.id), 0);
+  const getSimpleItemQty = (menuItemId: string) =>
+    cartItems.find(i => !i.variantId && i.menuItemId === menuItemId)?.quantity ?? 0;
+
+  const getItemTotalQty = (item: MenuItem) => {
+    if (item.variants.length === 0) return getSimpleItemQty(item.id);
+    return item.variants.reduce((sum, v) => sum + getVariantQty(v.id), 0);
+  };
+
+  const doAddItem = (vendorId: string, vendorName: string, payload: Omit<import('../../types').CartItem, 'quantity'>) => {
+    const result = addItem(vendorId, vendorName, payload);
+    if (result === 'added') {
+      Vibration.vibrate(40);
+    } else if (result === 'switch_required') {
+      Alert.alert(
+        'Start new cart?',
+        `Your cart has items from ${useCartStore.getState().vendorName}. Clear it to order from ${vendorName}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Clear & Switch',
+            style: 'destructive',
+            onPress: () => {
+              useCartStore.getState().clear();
+              addItem(vendorId, vendorName, payload);
+              Vibration.vibrate(40);
+            },
+          },
+        ],
+      );
+    }
+  };
 
   const handleTap = (item: MenuItem) => {
-    const available = item.variants.filter(v => v.isAvailable);
-    if (available.length === 0) return;
-
-    if (available.length === 1) {
-      const variant = available[0];
-      const result = addItem(vendor.id, vendor.name, {
-        variantId: variant.id,
-        menuItemId: item.id,
-        name: item.name,
-        variantLabel: variant.label,
-        price: variant.price,
-      });
-      if (result === 'added') {
-        Vibration.vibrate(40);
-      } else if (result === 'switch_required') {
-        Alert.alert(
-          'Start new cart?',
-          `Your cart has items from ${useCartStore.getState().vendorName}. Clear it to order from ${vendor.name}?`,
-          [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Clear & Switch',
-              style: 'destructive',
-              onPress: () => {
-                useCartStore.getState().clear();
-                addItem(vendor.id, vendor.name, {
-                  variantId: variant.id,
-                  menuItemId: item.id,
-                  name: item.name,
-                  variantLabel: variant.label,
-                  price: variant.price,
-                });
-                Vibration.vibrate(40);
-              },
-            },
-          ],
-        );
-      }
+    if (item.variants.length === 0) {
+      doAddItem(vendor.id, vendor.name, { menuItemId: item.id, name: item.name, price: item.price });
+    } else if (item.variants.length === 1) {
+      const variant = item.variants[0];
+      doAddItem(vendor.id, vendor.name, { variantId: variant.id, menuItemId: item.id, name: item.name, variantLabel: variant.label, price: variant.price });
     } else {
       setPickerItem(item);
     }
@@ -267,7 +266,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
       Alert.alert('Vendor is closed', 'This vendor is not accepting orders right now.');
       return;
     }
-    const { available, skippedCount } = resolveReorderItems(order, categories, uncategorized);
+    const { available, skippedCount } = resolveReorderItems(order, items);
     if (available.length === 0) {
       Alert.alert('Nothing available', 'None of your previous items are currently on the menu.');
       return;
@@ -281,7 +280,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
           variantLabel: item.variantLabel,
           price: item.price,
         });
-        for (let i = 1; i < item.quantity; i++) incrementItem(item.variantId);
+        for (let i = 1; i < item.quantity; i++) incrementItem(item.variantId ?? item.menuItemId);
       });
       if (skippedCount > 0) {
         Alert.alert('Some items skipped', `${skippedCount} item${skippedCount > 1 ? 's' : ''} from your previous order ${skippedCount > 1 ? 'are' : 'is'} no longer available and ${skippedCount > 1 ? 'were' : 'was'} skipped.`);
@@ -301,20 +300,20 @@ export default function VendorMenuScreen({ route, navigation }: any) {
     } else {
       doAdd();
     }
-  }, [vendor, categories, uncategorized, addItem, incrementItem]);
+  }, [vendor, items, addItem, incrementItem]);
 
-  const priceRange = (item: MenuItem) => {
-    const prices = item.variants.filter(v => v.isAvailable).map(v => v.price);
-    if (!prices.length) return '';
+  const priceDisplay = (item: MenuItem) => {
+    if (item.variants.length === 0) return `₹${item.price.toFixed(2)}`;
+    const prices = item.variants.map(v => v.price);
     const min = Math.min(...prices);
     const max = Math.max(...prices);
     return min === max ? `₹${min.toFixed(2)}` : `₹${min.toFixed(2)} – ₹${max.toFixed(2)}`;
   };
 
   const renderMenuItem = (item: MenuItem) => {
-    const unavailable = !item.isAvailable || item.variants.every(v => !v.isAvailable);
+    const unavailable = !item.isAvailable;
     const totalQty = getItemTotalQty(item);
-    const hasMultiVariant = item.variants.filter(v => v.isAvailable).length > 1;
+    const hasMultiVariant = item.variants.length > 1;
 
     return (
       <View key={item.id} style={[styles.itemCard, unavailable && styles.itemUnavailable]}>
@@ -330,7 +329,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
             </Text>
           ) : null}
           <Text style={[styles.itemPrice, unavailable && styles.textDimmed]}>
-            {unavailable ? 'Unavailable' : priceRange(item)}
+            {unavailable ? 'Unavailable' : priceDisplay(item)}
           </Text>
         </View>
 
@@ -346,11 +345,11 @@ export default function VendorMenuScreen({ route, navigation }: any) {
             </TouchableOpacity>
           ) : (
             <View style={styles.qtyControl}>
-              <TouchableOpacity style={styles.qtyBtn} onPress={() => decrementItem(item.variants[0].id)}>
+              <TouchableOpacity style={styles.qtyBtn} onPress={() => decrementItem(item.variants.length === 0 ? item.id : item.variants[0].id)}>
                 <Minus size={14} color={colors.primary} />
               </TouchableOpacity>
               <Text style={styles.qtyText}>{totalQty}</Text>
-              <TouchableOpacity style={styles.qtyBtn} onPress={() => incrementItem(item.variants[0].id)}>
+              <TouchableOpacity style={styles.qtyBtn} onPress={() => incrementItem(item.variants.length === 0 ? item.id : item.variants[0].id)}>
                 <Plus size={14} color={colors.primary} />
               </TouchableOpacity>
             </View>

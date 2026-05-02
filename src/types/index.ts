@@ -25,20 +25,14 @@ export interface MenuVariant {
 
 export interface MenuItem {
   id: string;
-  categoryId?: string;
+  category?: string;
   name: string;
   description?: string;
   isVeg: boolean;
   isAvailable: boolean;
   displayOrder: number;
+  price: number;
   variants: MenuVariant[];
-}
-
-export interface MenuCategory {
-  id: string;
-  name: string;
-  displayOrder: number;
-  items: MenuItem[];
 }
 
 export interface OrderItem {
@@ -66,8 +60,7 @@ export interface Order {
 }
 
 export interface StudentMenuResponse {
-  categories: MenuCategory[];
-  uncategorized: MenuItem[];
+  items: MenuItem[];
 }
 
 export type ServiceRequestType =
@@ -86,7 +79,7 @@ export interface ServiceRequest {
 }
 
 export interface CartItem {
-  variantId: string;
+  variantId?: string;
   menuItemId: string;
   name: string;
   variantLabel?: string;
