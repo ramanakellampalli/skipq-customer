@@ -73,11 +73,11 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
         <Text style={styles.itemPrice}>₹{(item.price * item.quantity).toFixed(2)}</Text>
       </View>
       <View style={styles.qtyControl}>
-        <TouchableOpacity style={styles.qtyBtn} onPress={() => decrementItem(item.variantId)}>
+        <TouchableOpacity style={styles.qtyBtn} onPress={() => decrementItem(item.variantId ?? item.menuItemId)}>
           <Minus size={14} color={colors.primary} />
         </TouchableOpacity>
         <Text style={styles.qtyText}>{item.quantity}</Text>
-        <TouchableOpacity style={styles.qtyBtn} onPress={() => incrementItem(item.variantId)}>
+        <TouchableOpacity style={styles.qtyBtn} onPress={() => incrementItem(item.variantId ?? item.menuItemId)}>
           <Plus size={14} color={colors.primary} />
         </TouchableOpacity>
       </View>
@@ -114,7 +114,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
           <>
             <FlatList
               data={items}
-              keyExtractor={i => i.variantId}
+              keyExtractor={i => i.variantId ?? i.menuItemId}
               renderItem={renderItem}
               style={styles.itemList}
             />

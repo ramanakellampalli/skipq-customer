@@ -280,7 +280,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
           variantLabel: item.variantLabel,
           price: item.price,
         });
-        for (let i = 1; i < item.quantity; i++) incrementItem(item.variantId);
+        for (let i = 1; i < item.quantity; i++) incrementItem(item.variantId ?? item.menuItemId);
       });
       if (skippedCount > 0) {
         Alert.alert('Some items skipped', `${skippedCount} item${skippedCount > 1 ? 's' : ''} from your previous order ${skippedCount > 1 ? 'are' : 'is'} no longer available and ${skippedCount > 1 ? 'were' : 'was'} skipped.`);
