@@ -51,7 +51,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
       setLoading(true);
       const { data } = await api.student.placeOrder(
         vendorId,
-        items.map(i => ({ variantId: i.variantId, quantity: i.quantity })),
+        items.map(i => ({ menuItemId: i.menuItemId, variantId: i.variantId, quantity: i.quantity })),
       );
       clear();
       setActiveOrder(data);

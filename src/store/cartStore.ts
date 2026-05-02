@@ -1,14 +1,17 @@
 import { create } from 'zustand';
 import { CartItem } from '../types';
 
+const itemKey = (item: Pick<CartItem, 'variantId' | 'menuItemId'>) =>
+  item.variantId ?? item.menuItemId;
+
 interface CartState {
   vendorId: string | null;
   vendorName: string;
   items: CartItem[];
   addItem: (vendorId: string, vendorName: string, item: Omit<CartItem, 'quantity'>) => 'added' | 'switch_required';
-  incrementItem: (variantId: string) => void;
-  decrementItem: (variantId: string) => void;
-  removeItem: (variantId: string) => void;
+  incrementItem: (key: string) => void;
+  decrementItem: (key: string) => void;
+  removeItem: (key: string) => void;
   clear: () => void;
   total: () => number;
   itemCount: () => number;
@@ -24,35 +27,34 @@ export const useCartStore = create<CartState>((set, get) => ({
     if (state.vendorId && state.vendorId !== vendorId && state.items.length > 0) {
       return 'switch_required';
     }
+    const key = itemKey(item);
     set(s => {
-      const exists = s.items.find(i => i.variantId === item.variantId);
+      const exists = s.items.find(i => itemKey(i) === key);
       return {
         vendorId,
         vendorName,
         items: exists
-          ? s.items.map(i => i.variantId === item.variantId ? { ...i, quantity: i.quantity + 1 } : i)
+          ? s.items.map(i => itemKey(i) === key ? { ...i, quantity: i.quantity + 1 } : i)
           : [...s.items, { ...item, quantity: 1 }],
       };
     });
     return 'added';
   },
 
-  incrementItem: variantId =>
+  incrementItem: key =>
     set(s => ({
-      items: s.items.map(i =>
-        i.variantId === variantId ? { ...i, quantity: i.quantity + 1 } : i,
-      ),
+      items: s.items.map(i => itemKey(i) === key ? { ...i, quantity: i.quantity + 1 } : i),
     })),
 
-  decrementItem: variantId =>
+  decrementItem: key =>
     set(s => ({
       items: s.items
-        .map(i => i.variantId === variantId ? { ...i, quantity: i.quantity - 1 } : i)
+        .map(i => itemKey(i) === key ? { ...i, quantity: i.quantity - 1 } : i)
         .filter(i => i.quantity > 0),
     })),
 
-  removeItem: variantId =>
-    set(s => ({ items: s.items.filter(i => i.variantId !== variantId) })),
+  removeItem: key =>
+    set(s => ({ items: s.items.filter(i => itemKey(i) !== key) })),
 
   clear: () => set({ vendorId: null, vendorName: '', items: [] }),
 

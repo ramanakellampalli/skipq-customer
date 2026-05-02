@@ -31,6 +31,7 @@ export interface MenuItem {
   isVeg: boolean;
   isAvailable: boolean;
   displayOrder: number;
+  price: number;
   variants: MenuVariant[];
 }
 
@@ -78,7 +79,7 @@ export interface ServiceRequest {
 }
 
 export interface CartItem {
-  variantId: string;
+  variantId?: string;
   menuItemId: string;
   name: string;
   variantLabel?: string;

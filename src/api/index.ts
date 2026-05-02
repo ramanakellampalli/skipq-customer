@@ -35,7 +35,7 @@ export const api = {
       client.get<StudentSyncResponse>('/api/v1/student/sync'),
     getMenu: (vendorId: string) =>
       client.get<StudentMenuResponse>(`/api/v1/student/menu/${vendorId}`),
-    placeOrder: (vendorId: string, items: { variantId: string; quantity: number }[]) =>
+    placeOrder: (vendorId: string, items: { menuItemId: string; variantId?: string; quantity: number }[]) =>
       client.post<Order>('/api/v1/student/orders', { vendorId, items }),
     deleteAccount: () =>
       client.delete('/api/v1/student/account'),
