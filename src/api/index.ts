@@ -1,5 +1,5 @@
 import { client } from './client';
-import { Vendor, Order, StudentMenuResponse, ServiceRequest, ServiceRequestType } from '../types';
+import { Vendor, Order, PlaceOrderResponse, StudentMenuResponse, ServiceRequest, ServiceRequestType } from '../types';
 import { StudentProfile } from '../store/studentStore';
 
 export interface StudentSyncResponse {
@@ -36,7 +36,9 @@ export const api = {
     getMenu: (vendorId: string) =>
       client.get<StudentMenuResponse>(`/api/v1/student/menu/${vendorId}`),
     placeOrder: (vendorId: string, items: { menuItemId: string; variantId?: string; quantity: number }[]) =>
-      client.post<Order>('/api/v1/student/orders', { vendorId, items }),
+      client.post<PlaceOrderResponse>('/api/v1/student/orders', { vendorId, items }),
+    cancelOrder: (orderId: string) =>
+      client.post(`/api/v1/orders/${orderId}/cancel`),
     deleteAccount: () =>
       client.delete('/api/v1/student/account'),
     registerDeviceToken: (token: string) =>

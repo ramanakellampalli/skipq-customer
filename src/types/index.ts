@@ -1,10 +1,19 @@
 export type OrderStatus =
+  | 'AWAITING_PAYMENT'
   | 'PENDING'
   | 'ACCEPTED'
   | 'PREPARING'
   | 'READY'
   | 'COMPLETED'
-  | 'REJECTED';
+  | 'REJECTED'
+  | 'CANCELLED';
+
+export interface PlaceOrderResponse {
+  orderId: string;
+  razorpayOrderId: string;
+  razorpayAmountPaise: number;
+  razorpayKeyId: string;
+}
 
 export interface Vendor {
   id: string;

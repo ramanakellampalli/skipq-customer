@@ -5,11 +5,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, Minus, Plus, ShoppingBag, ChevronDown, ChevronUp } from 'lucide-react-native';
+import Ably from 'ably';
+import RazorpayCheckout from 'react-native-razorpay';
+import Config from 'react-native-config';
 import { api } from '../api';
 import { useCartStore } from '../store/cartStore';
 import { useStudentStore } from '../store/studentStore';
 import { colors, font, radius, spacing } from '../theme';
-import { CartItem } from '../types';
+import { CartItem, Order } from '../types';
 import OrderSuccessOverlay from './OrderSuccessOverlay';
 
 interface Props {
@@ -53,9 +56,45 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
         vendorId,
         items.map(i => ({ menuItemId: i.menuItemId, variantId: i.variantId, quantity: i.quantity })),
       );
+
+      try {
+        await RazorpayCheckout.open({
+          description: 'Food Order',
+          currency: 'INR',
+          key: data.razorpayKeyId,
+          amount: data.razorpayAmountPaise,
+          name: 'SkipQ',
+          order_id: data.razorpayOrderId,
+          method: { upi: true, card: false, netbanking: false, wallet: false },
+          theme: { color: colors.primary },
+        });
+      } catch (err: any) {
+        // code 0 = user dismissed the Razorpay sheet
+        Alert.alert('Payment Cancelled', 'No charge was made. Your cart is intact.');
+        return;
+      }
+
       clear();
-      setActiveOrder(data);
-      setPendingOrderId(data.id);
+
+      // Wait for backend to verify Razorpay signature and publish PENDING via Ably (8 s timeout)
+      const orderId = data.orderId;
+      await new Promise<void>(resolve => {
+        const client = new Ably.Realtime({ key: Config.ABLY_API_KEY, closeOnUnload: false });
+        const channel = client.channels.get(`order:${orderId}`);
+        const cleanup = () => { channel.unsubscribe(); client.close(); };
+        const timeout = setTimeout(() => { cleanup(); resolve(); }, 8000);
+        channel.subscribe('status', msg => {
+          const updated: Order = JSON.parse(msg.data);
+          if (updated.state.orderStatus === 'PENDING') {
+            clearTimeout(timeout);
+            cleanup();
+            setActiveOrder(updated);
+            resolve();
+          }
+        });
+      });
+
+      setPendingOrderId(orderId);
       setShowSuccess(true);
     } catch (err: any) {
       Alert.alert('Order Failed', err.response?.data?.message || 'Could not place order. Try again.');

@@ -8,14 +8,15 @@ import { colors, font, radius, spacing } from '../../theme';
 import { Order, OrderStatus } from '../../types';
 
 const STEPS: { status: OrderStatus; label: string; sublabel: string }[] = [
-  { status: 'PENDING',   label: 'Order Placed',      sublabel: 'Waiting for vendor to confirm' },
-  { status: 'ACCEPTED',  label: 'Accepted',           sublabel: 'Vendor confirmed your order' },
-  { status: 'PREPARING', label: 'Being Prepared',     sublabel: 'Your food is being made' },
-  { status: 'READY',     label: 'Ready for Pickup',   sublabel: 'Head to the counter now!' },
-  { status: 'COMPLETED', label: 'Completed',          sublabel: 'Enjoy your meal!' },
+  { status: 'AWAITING_PAYMENT', label: 'Confirming Payment', sublabel: 'Verifying your payment…' },
+  { status: 'PENDING',          label: 'Order Placed',       sublabel: 'Waiting for vendor to confirm' },
+  { status: 'ACCEPTED',         label: 'Accepted',           sublabel: 'Vendor confirmed your order' },
+  { status: 'PREPARING',        label: 'Being Prepared',     sublabel: 'Your food is being made' },
+  { status: 'READY',            label: 'Ready for Pickup',   sublabel: 'Head to the counter now!' },
+  { status: 'COMPLETED',        label: 'Completed',          sublabel: 'Enjoy your meal!' },
 ];
 
-const STATUS_ORDER: OrderStatus[] = ['PENDING', 'ACCEPTED', 'PREPARING', 'READY', 'COMPLETED'];
+const STATUS_ORDER: OrderStatus[] = ['AWAITING_PAYMENT', 'PENDING', 'ACCEPTED', 'PREPARING', 'READY', 'COMPLETED'];
 
 function stepIndex(status: OrderStatus) {
   return STATUS_ORDER.indexOf(status);
@@ -34,7 +35,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
   const orderStatus = order?.state.orderStatus;
 
   useEffect(() => {
-    const isFinal = !orderStatus || ['COMPLETED', 'REJECTED'].includes(orderStatus);
+    const isFinal = !orderStatus || ['COMPLETED', 'REJECTED', 'CANCELLED'].includes(orderStatus);
     if (isFinal) return;
     const pulse = Animated.loop(
       Animated.sequence([
