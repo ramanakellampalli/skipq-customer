@@ -76,7 +76,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
 
   useEffect(() => {
     const status = orderStatus;
-    if (status === 'COMPLETED' || status === 'REJECTED') {
+    if (status === 'COMPLETED' || status === 'REJECTED' || status === 'CANCELLED') {
       const t = setTimeout(() => navigation.goBack(), 3000);
       return () => clearTimeout(t);
     }
@@ -94,6 +94,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
   }, [orderId, setActiveOrder]);
 
   const isRejected = order?.state.orderStatus === 'REJECTED';
+  const isCancelled = order?.state.orderStatus === 'CANCELLED';
   const currentIdx = order ? stepIndex(order.state.orderStatus) : 0;
 
   return (
@@ -107,7 +108,15 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
         )}
       </View>
 
-      {isRejected ? (
+      {isCancelled ? (
+        <View style={styles.cancelledCard}>
+          <Text style={styles.rejectedIcon}>✕</Text>
+          <Text style={styles.cancelledTitle}>Order Cancelled</Text>
+          <Text style={styles.rejectedSub}>
+            Your order has been cancelled. A full refund has been initiated.
+          </Text>
+        </View>
+      ) : isRejected ? (
         <View style={styles.rejectedCard}>
           <Text style={styles.rejectedIcon}>✕</Text>
           <Text style={styles.rejectedTitle}>Order Rejected</Text>
@@ -336,4 +345,15 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     opacity: 0.7,
   },
+  cancelledCard: {
+    margin: spacing.lg,
+    backgroundColor: 'rgba(107,114,128,0.1)',
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.textSecondary,
+    padding: spacing.xl,
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  cancelledTitle: { fontFamily: font.bold, fontSize: 20, color: colors.textSecondary },
 });
