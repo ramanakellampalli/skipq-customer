@@ -158,6 +158,8 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
         </View>
       )}
 
+      <Text style={styles.cancelNote}>Orders can only be cancelled before the vendor accepts</Text>
+
       {canCancel && (
         <TouchableOpacity
           style={[styles.cancelBtn, cancelling && styles.cancelBtnDisabled]}
@@ -325,4 +327,13 @@ const styles = StyleSheet.create({
   },
   cancelBtnDisabled: { opacity: 0.5 },
   cancelBtnText: { fontFamily: font.semiBold, fontSize: 15, color: colors.error },
+  cancelNote: {
+    fontFamily: font.regular,
+    fontSize: 12,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    opacity: 0.7,
+  },
 });
