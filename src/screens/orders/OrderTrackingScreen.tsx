@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, StatusBar, Animated } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, StatusBar, Animated, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import Ably from 'ably';
 import { CheckCircle2, Circle, Clock } from 'lucide-react-native';
 import Config from 'react-native-config';
+import { api } from '../../api';
 import { useStudentStore } from '../../store/studentStore';
 import { colors, font, radius, spacing } from '../../theme';
 import { Order, OrderStatus } from '../../types';
@@ -31,8 +32,34 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
       : state.pastOrders.find(o => o.id === orderId) ?? null
   );
 
+  const [cancelling, setCancelling] = useState(false);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const orderStatus = order?.state.orderStatus;
+  const canCancel = orderStatus === 'PENDING';
+
+  const handleCancel = () => {
+    Alert.alert(
+      'Cancel Order',
+      'Are you sure? A full refund will be initiated.',
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes, Cancel',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setCancelling(true);
+              await api.student.cancelOrder(orderId);
+            } catch {
+              Alert.alert('Error', 'Could not cancel the order. Please try again.');
+            } finally {
+              setCancelling(false);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   useEffect(() => {
     const isFinal = !orderStatus || ['COMPLETED', 'REJECTED', 'CANCELLED'].includes(orderStatus);
@@ -129,6 +156,18 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
             );
           })}
         </View>
+      )}
+
+      {canCancel && (
+        <TouchableOpacity
+          style={[styles.cancelBtn, cancelling && styles.cancelBtnDisabled]}
+          onPress={handleCancel}
+          disabled={cancelling}
+          activeOpacity={0.8}>
+          {cancelling
+            ? <ActivityIndicator color={colors.error} />
+            : <Text style={styles.cancelBtnText}>Cancel Order</Text>}
+        </TouchableOpacity>
       )}
 
       {order?.timeline.estimatedReadyAt && !isRejected && (
@@ -275,4 +314,15 @@ const styles = StyleSheet.create({
   receiptValue: { fontFamily: font.medium, fontSize: 14, color: colors.textSecondary },
   receiptDivider: { height: 1, backgroundColor: colors.border },
   receiptTotal: { fontFamily: font.bold, fontSize: 15, color: colors.textPrimary },
+  cancelBtn: {
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.error,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  cancelBtnDisabled: { opacity: 0.5 },
+  cancelBtnText: { fontFamily: font.semiBold, fontSize: 15, color: colors.error },
 });
