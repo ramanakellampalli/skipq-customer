@@ -68,7 +68,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
           method: { upi: true, card: false, netbanking: false, wallet: false },
           theme: { color: colors.primary },
         });
-      } catch (err: any) {
+      } catch {
         // code 0 = user dismissed the Razorpay sheet
         Alert.alert('Payment Cancelled', 'No charge was made. Your cart is intact.');
         return;
