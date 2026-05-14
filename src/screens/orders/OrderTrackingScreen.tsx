@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, StatusBar, Animated, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import Ably from 'ably';
-import { CheckCircle2, Circle, Clock } from 'lucide-react-native';
+import { CheckCircle2, Circle } from 'lucide-react-native';
 import Config from 'react-native-config';
 import { api } from '../../api';
 import { useStudentStore } from '../../store/studentStore';
@@ -81,6 +81,13 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
       return () => clearTimeout(t);
     }
   }, [orderStatus, navigation]);
+
+  useEffect(() => {
+    if (order) return;
+    api.student.getOrder(orderId)
+      .then(res => setActiveOrder(res.data))
+      .catch(() => {});
+  }, [orderId, order, setActiveOrder]);
 
   useEffect(() => {
     if (!orderId || !Config.ABLY_API_KEY) return;
@@ -181,18 +188,6 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
         </TouchableOpacity>
       )}
 
-      {order?.timeline.estimatedReadyAt && !isRejected && (
-        <View style={styles.etaCard}>
-          <Clock size={16} color={colors.primary} />
-          <Text style={styles.etaText}>
-            Ready by{' '}
-            {new Date(order.timeline.estimatedReadyAt).toLocaleTimeString('en-IN', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </Text>
-        </View>
-      )}
 
       {order?.state.orderStatus === 'READY' && (
         <View style={styles.readyBanner}>
@@ -274,18 +269,6 @@ const styles = StyleSheet.create({
   stepActive: { color: colors.primary },
   stepUpcoming: { color: colors.textSecondary },
   stepSublabel: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
-  etaCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginHorizontal: spacing.md,
-    backgroundColor: colors.primaryGlow,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    padding: spacing.md,
-  },
-  etaText: { fontFamily: font.semiBold, fontSize: 14, color: colors.primary },
   readyBanner: {
     margin: spacing.md,
     backgroundColor: 'rgba(16,185,129,0.12)',
