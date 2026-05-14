@@ -18,6 +18,8 @@ declare module 'react-native-razorpay' {
       card?: boolean;
       netbanking?: boolean;
       wallet?: boolean;
+      emi?: boolean;
+      paylater?: boolean;
     };
   }
 

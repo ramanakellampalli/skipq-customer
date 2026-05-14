@@ -65,7 +65,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
           amount: data.razorpayAmountPaise,
           name: 'SkipQ',
           order_id: data.razorpayOrderId,
-          method: { upi: true, card: false, netbanking: false, wallet: false },
+          method: { upi: true, card: false, netbanking: false, wallet: false, emi: false, paylater: false },
           theme: { color: colors.primary },
         });
       } catch {
