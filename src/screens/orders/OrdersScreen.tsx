@@ -8,7 +8,6 @@ import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
 import { Order } from '../../types';
 import { useStudentStore } from '../../store/studentStore';
-import { timeAgo } from '../../utils/time';
 
 type Filter = 'today' | 'yesterday' | 'week' | 'all';
 
@@ -19,26 +18,35 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: 'all', label: 'All' },
 ];
 
-const STATUS_LABEL: Record<string, string> = {
-  PENDING:   'Pending',
-  ACCEPTED:  'Accepted',
-  PREPARING: 'Preparing',
-  READY:     'Ready!',
-  COMPLETED: 'Completed',
-  REJECTED:  'Rejected',
-};
-
-const STATUS_COLOR: Record<string, string> = {
+const ACTIVE_STATUS_COLOR: Record<string, string> = {
   PENDING:   colors.textSecondary,
   ACCEPTED:  colors.info,
   PREPARING: colors.warning,
   READY:     colors.success,
-  COMPLETED: colors.textSecondary,
-  REJECTED:  colors.error,
 };
+
+const ACTIVE_STATUS_LABEL: Record<string, string> = {
+  PENDING:   'Pending',
+  ACCEPTED:  'Accepted',
+  PREPARING: 'Preparing',
+  READY:     'Ready!',
+};
+
+const VOIDED = new Set(['REJECTED', 'CANCELLED']);
 
 function startOf(date: Date): number {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+}
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const todayStart = startOf(now);
+  const yesterdayStart = todayStart - 86400000;
+  const t = date.getTime();
+  if (t >= todayStart) return 'Today';
+  if (t >= yesterdayStart) return 'Yesterday';
+  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
 function applyFilter(orders: Order[], filter: Filter): Order[] {
@@ -75,24 +83,30 @@ export default function OrdersScreen({ navigation }: any) {
     }
   }, [setSync]);
 
-  const renderPastOrder = ({ item }: { item: Order }) => (
-    <View style={styles.pastCard}>
-      <View style={styles.pastHeader}>
-        <Text style={styles.pastId}>#{item.id.slice(0, 8).toUpperCase()}</Text>
-        <Text style={[styles.pastStatus, { color: STATUS_COLOR[item.state.orderStatus] }]}>
-          {STATUS_LABEL[item.state.orderStatus]}
-        </Text>
-      </View>
-      <Text style={styles.pastVendor}>{item.vendor.name}</Text>
-      <Text style={styles.pastItems} numberOfLines={1}>
-        {item.items.map(i => `${i.quantity}× ${i.name}`).join(', ')}
-      </Text>
-      <View style={styles.pastFooter}>
-        <Text style={styles.pastTotal}>₹{item.pricing.totalAmount.toFixed(2)}</Text>
-        <Text style={styles.pastTime}>{timeAgo(item.timeline.createdAt)}</Text>
-      </View>
-    </View>
-  );
+  const renderPastOrder = ({ item, index }: { item: Order; index: number }) => {
+    const voided = VOIDED.has(item.state.orderStatus);
+    const isLast = index === filtered.length - 1;
+    return (
+      <TouchableOpacity
+        style={[styles.row, !isLast && styles.rowBorder]}
+        onPress={() => navigation.navigate('OrderTracking', { orderId: item.id })}
+        activeOpacity={0.6}>
+        <View style={styles.rowLeft}>
+          <Text style={styles.rowVendor}>{item.vendor.name}</Text>
+          <View style={styles.rowMeta}>
+            <Text style={styles.rowDate}>{formatDate(item.timeline.createdAt)}</Text>
+            {voided && <Text style={styles.voidBadge}>VOID</Text>}
+          </View>
+        </View>
+        <View style={styles.rowRight}>
+          <Text style={[styles.rowAmount, voided && styles.rowAmountVoided]}>
+            ₹{item.pricing.totalAmount.toFixed(0)}
+          </Text>
+          <ChevronRight size={16} color={colors.textSecondary} />
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const hasPastOrders = pastOrders.length > 0;
 
@@ -101,10 +115,10 @@ export default function OrdersScreen({ navigation }: any) {
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       <FlatList
-        data={filtered}
-        keyExtractor={item => item.id}
-        renderItem={renderPastOrder}
-        contentContainerStyle={filtered.length === 0 && !activeOrder ? styles.emptyContainer : styles.list}
+        data={[]}
+        keyExtractor={() => ''}
+        renderItem={null}
+        contentContainerStyle={!activeOrder && !hasPastOrders ? styles.emptyContainer : styles.list}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
@@ -132,8 +146,8 @@ export default function OrdersScreen({ navigation }: any) {
                   {activeOrder.items.map(i => `${i.quantity}× ${i.name}`).join(', ')}
                 </Text>
                 <View style={styles.activeFooter}>
-                  <Text style={[styles.activeStatus, { color: STATUS_COLOR[activeOrder.state.orderStatus] }]}>
-                    {STATUS_LABEL[activeOrder.state.orderStatus]}
+                  <Text style={[styles.activeStatus, { color: ACTIVE_STATUS_COLOR[activeOrder.state.orderStatus] }]}>
+                    {ACTIVE_STATUS_LABEL[activeOrder.state.orderStatus]}
                   </Text>
                   <Text style={styles.activeTotal}>₹{activeOrder.pricing.totalAmount.toFixed(2)}</Text>
                 </View>
@@ -157,22 +171,26 @@ export default function OrdersScreen({ navigation }: any) {
                     </TouchableOpacity>
                   ))}
                 </View>
+                {filtered.length > 0 ? (
+                  <View style={styles.listCard}>
+                    {filtered.map((item, index) => renderPastOrder({ item, index }))}
+                  </View>
+                ) : (
+                  <View style={styles.emptyFiltered}>
+                    <Text style={styles.emptyFilteredText}>No orders in this range</Text>
+                  </View>
+                )}
               </>
             )}
+
+            {!activeOrder && !hasPastOrders && (
+              <View style={styles.empty}>
+                <ClipboardList size={56} color={colors.border} />
+                <Text style={styles.emptyTitle}>No orders yet</Text>
+                <Text style={styles.emptySubtitle}>Find a vendor and place your first order</Text>
+              </View>
+            )}
           </View>
-        }
-        ListEmptyComponent={
-          !activeOrder ? (
-            <View style={styles.empty}>
-              <ClipboardList size={56} color={colors.border} />
-              <Text style={styles.emptyTitle}>
-                {hasPastOrders ? 'No orders in this range' : 'No orders yet'}
-              </Text>
-              <Text style={styles.emptySubtitle}>
-                {hasPastOrders ? 'Try a different date filter' : 'Find a vendor and place your first order'}
-              </Text>
-            </View>
-          ) : null
         }
       />
     </View>
@@ -185,6 +203,7 @@ const styles = StyleSheet.create({
   emptyContainer: { flex: 1 },
   header: { paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md },
   title: { fontFamily: font.bold, fontSize: 22, color: colors.textPrimary },
+
   activeCard: {
     marginHorizontal: spacing.md,
     marginBottom: spacing.md,
@@ -204,6 +223,7 @@ const styles = StyleSheet.create({
   activeFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
   activeStatus: { fontFamily: font.semiBold, fontSize: 13 },
   activeTotal: { fontFamily: font.bold, fontSize: 15, color: colors.textPrimary },
+
   sectionRow: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.xs },
   sectionLabel: { fontFamily: font.semiBold, fontSize: 12, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
   filterRow: {
@@ -224,24 +244,46 @@ const styles = StyleSheet.create({
   pillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   pillText: { fontFamily: font.semiBold, fontSize: 12, color: colors.textSecondary },
   pillTextActive: { color: colors.white },
-  pastCard: {
+
+  listCard: {
     marginHorizontal: spacing.md,
-    marginBottom: spacing.sm,
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: spacing.md,
-    gap: 4,
+    overflow: 'hidden',
   },
-  pastHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pastId: { fontFamily: font.bold, fontSize: 13, color: colors.textSecondary },
-  pastStatus: { fontFamily: font.semiBold, fontSize: 12 },
-  pastVendor: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
-  pastItems: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
-  pastFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
-  pastTotal: { fontFamily: font.bold, fontSize: 14, color: colors.primary },
-  pastTime: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: 14,
+    gap: spacing.sm,
+  },
+  rowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  rowLeft: { flex: 1, gap: 3 },
+  rowVendor: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
+  rowMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  rowDate: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary },
+  voidBadge: {
+    fontFamily: font.bold,
+    fontSize: 10,
+    color: colors.error,
+    borderWidth: 1,
+    borderColor: colors.error,
+    borderRadius: 3,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+  },
+  rowRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  rowAmount: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
+  rowAmountVoided: { textDecorationLine: 'line-through', color: colors.textSecondary },
+
+  emptyFiltered: { paddingVertical: spacing.lg, alignItems: 'center' },
+  emptyFilteredText: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, gap: spacing.sm },
   emptyTitle: { fontFamily: font.semiBold, fontSize: 18, color: colors.textPrimary },
   emptySubtitle: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
