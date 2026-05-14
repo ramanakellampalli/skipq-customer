@@ -83,6 +83,13 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
   }, [orderStatus, navigation]);
 
   useEffect(() => {
+    if (order) return;
+    api.student.getOrder(orderId)
+      .then(res => setActiveOrder(res.data))
+      .catch(() => {});
+  }, [orderId, order, setActiveOrder]);
+
+  useEffect(() => {
     if (!orderId || !Config.ABLY_API_KEY) return;
     const client = new Ably.Realtime({ key: Config.ABLY_API_KEY, closeOnUnload: false });
     const channel = client.channels.get(`order:${orderId}`);
