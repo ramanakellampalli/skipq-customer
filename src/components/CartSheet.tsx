@@ -5,15 +5,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, Minus, Plus, ShoppingBag, ChevronDown, ChevronUp } from 'lucide-react-native';
-import Ably from 'ably';
 import RazorpayCheckout from 'react-native-razorpay';
-import Config from 'react-native-config';
 import { api } from '../api';
 import { useCartStore } from '../store/cartStore';
-import { useStudentStore } from '../store/studentStore';
 import { colors, font, radius, spacing } from '../theme';
-import { CartItem, Order } from '../types';
-import OrderSuccessOverlay from './OrderSuccessOverlay';
+import { CartItem } from '../types';
 
 interface Props {
   visible: boolean;
@@ -30,10 +26,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
   const total = useCartStore(state => state.total());
   const clear = useCartStore(state => state.clear);
   const [loading, setLoading] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [feeOpen, setFeeOpen] = useState(false);
-  const setActiveOrder = useStudentStore(state => state.setActiveOrder);
 
   const igstApplicable = false; // TODO: derive from vendor/customer state mismatch
 
@@ -75,27 +68,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
       }
 
       clear();
-
-      // Wait for backend to verify Razorpay signature and publish PENDING via Ably (8 s timeout)
-      const orderId = data.orderId;
-      await new Promise<void>(resolve => {
-        const client = new Ably.Realtime({ key: Config.ABLY_API_KEY, closeOnUnload: false });
-        const channel = client.channels.get(`order:${orderId}`);
-        const cleanup = () => { channel.unsubscribe(); client.close(); };
-        const timeout = setTimeout(() => { cleanup(); resolve(); }, 8000);
-        channel.subscribe('status', msg => {
-          const updated: Order = JSON.parse(msg.data);
-          if (updated.state.orderStatus === 'PENDING') {
-            clearTimeout(timeout);
-            cleanup();
-            setActiveOrder(updated);
-            resolve();
-          }
-        });
-      });
-
-      setPendingOrderId(orderId);
-      setShowSuccess(true);
+      onOrderPlaced(data.orderId);
     } catch (err: any) {
       Alert.alert('Order Failed', err.response?.data?.message || 'Could not place order. Try again.');
     } finally {
@@ -124,14 +97,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
   );
 
   return (
-    <Modal visible={visible || showSuccess} animationType="slide" transparent={false} onRequestClose={onClose}>
-      <OrderSuccessOverlay
-        visible={showSuccess}
-        onDone={() => {
-          setShowSuccess(false);
-          if (pendingOrderId) onOrderPlaced(pendingOrderId);
-        }}
-      />
+    <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <SafeAreaView style={styles.screen}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
