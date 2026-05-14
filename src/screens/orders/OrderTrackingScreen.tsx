@@ -1,21 +1,23 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, StatusBar, Animated } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, StatusBar, Animated, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import Ably from 'ably';
 import { CheckCircle2, Circle, Clock } from 'lucide-react-native';
 import Config from 'react-native-config';
+import { api } from '../../api';
 import { useStudentStore } from '../../store/studentStore';
 import { colors, font, radius, spacing } from '../../theme';
 import { Order, OrderStatus } from '../../types';
 
 const STEPS: { status: OrderStatus; label: string; sublabel: string }[] = [
-  { status: 'PENDING',   label: 'Order Placed',      sublabel: 'Waiting for vendor to confirm' },
-  { status: 'ACCEPTED',  label: 'Accepted',           sublabel: 'Vendor confirmed your order' },
-  { status: 'PREPARING', label: 'Being Prepared',     sublabel: 'Your food is being made' },
-  { status: 'READY',     label: 'Ready for Pickup',   sublabel: 'Head to the counter now!' },
-  { status: 'COMPLETED', label: 'Completed',          sublabel: 'Enjoy your meal!' },
+  { status: 'AWAITING_PAYMENT', label: 'Confirming Payment', sublabel: 'Verifying your payment…' },
+  { status: 'PENDING',          label: 'Order Placed',       sublabel: 'Waiting for vendor to confirm' },
+  { status: 'ACCEPTED',         label: 'Accepted',           sublabel: 'Vendor confirmed your order' },
+  { status: 'PREPARING',        label: 'Being Prepared',     sublabel: 'Your food is being made' },
+  { status: 'READY',            label: 'Ready for Pickup',   sublabel: 'Head to the counter now!' },
+  { status: 'COMPLETED',        label: 'Completed',          sublabel: 'Enjoy your meal!' },
 ];
 
-const STATUS_ORDER: OrderStatus[] = ['PENDING', 'ACCEPTED', 'PREPARING', 'READY', 'COMPLETED'];
+const STATUS_ORDER: OrderStatus[] = ['AWAITING_PAYMENT', 'PENDING', 'ACCEPTED', 'PREPARING', 'READY', 'COMPLETED'];
 
 function stepIndex(status: OrderStatus) {
   return STATUS_ORDER.indexOf(status);
@@ -30,11 +32,37 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
       : state.pastOrders.find(o => o.id === orderId) ?? null
   );
 
+  const [cancelling, setCancelling] = useState(false);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const orderStatus = order?.state.orderStatus;
+  const canCancel = orderStatus === 'PENDING';
+
+  const handleCancel = () => {
+    Alert.alert(
+      'Cancel Order',
+      'Are you sure? A full refund will be initiated.',
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes, Cancel',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setCancelling(true);
+              await api.student.cancelOrder(orderId);
+            } catch {
+              Alert.alert('Error', 'Could not cancel the order. Please try again.');
+            } finally {
+              setCancelling(false);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   useEffect(() => {
-    const isFinal = !orderStatus || ['COMPLETED', 'REJECTED'].includes(orderStatus);
+    const isFinal = !orderStatus || ['COMPLETED', 'REJECTED', 'CANCELLED'].includes(orderStatus);
     if (isFinal) return;
     const pulse = Animated.loop(
       Animated.sequence([
@@ -48,7 +76,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
 
   useEffect(() => {
     const status = orderStatus;
-    if (status === 'COMPLETED' || status === 'REJECTED') {
+    if (status === 'COMPLETED' || status === 'REJECTED' || status === 'CANCELLED') {
       const t = setTimeout(() => navigation.goBack(), 3000);
       return () => clearTimeout(t);
     }
@@ -66,6 +94,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
   }, [orderId, setActiveOrder]);
 
   const isRejected = order?.state.orderStatus === 'REJECTED';
+  const isCancelled = order?.state.orderStatus === 'CANCELLED';
   const currentIdx = order ? stepIndex(order.state.orderStatus) : 0;
 
   return (
@@ -79,7 +108,15 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
         )}
       </View>
 
-      {isRejected ? (
+      {isCancelled ? (
+        <View style={styles.cancelledCard}>
+          <Text style={styles.rejectedIcon}>✕</Text>
+          <Text style={styles.cancelledTitle}>Order Cancelled</Text>
+          <Text style={styles.rejectedSub}>
+            Your order has been cancelled. A full refund has been initiated.
+          </Text>
+        </View>
+      ) : isRejected ? (
         <View style={styles.rejectedCard}>
           <Text style={styles.rejectedIcon}>✕</Text>
           <Text style={styles.rejectedTitle}>Order Rejected</Text>
@@ -128,6 +165,20 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
             );
           })}
         </View>
+      )}
+
+      <Text style={styles.cancelNote}>Orders can only be cancelled before the vendor accepts</Text>
+
+      {canCancel && (
+        <TouchableOpacity
+          style={[styles.cancelBtn, cancelling && styles.cancelBtnDisabled]}
+          onPress={handleCancel}
+          disabled={cancelling}
+          activeOpacity={0.8}>
+          {cancelling
+            ? <ActivityIndicator color={colors.error} />
+            : <Text style={styles.cancelBtnText}>Cancel Order</Text>}
+        </TouchableOpacity>
       )}
 
       {order?.timeline.estimatedReadyAt && !isRejected && (
@@ -274,4 +325,35 @@ const styles = StyleSheet.create({
   receiptValue: { fontFamily: font.medium, fontSize: 14, color: colors.textSecondary },
   receiptDivider: { height: 1, backgroundColor: colors.border },
   receiptTotal: { fontFamily: font.bold, fontSize: 15, color: colors.textPrimary },
+  cancelBtn: {
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.error,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  cancelBtnDisabled: { opacity: 0.5 },
+  cancelBtnText: { fontFamily: font.semiBold, fontSize: 15, color: colors.error },
+  cancelNote: {
+    fontFamily: font.regular,
+    fontSize: 12,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    opacity: 0.7,
+  },
+  cancelledCard: {
+    margin: spacing.lg,
+    backgroundColor: 'rgba(107,114,128,0.1)',
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.textSecondary,
+    padding: spacing.xl,
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  cancelledTitle: { fontFamily: font.bold, fontSize: 20, color: colors.textSecondary },
 });
