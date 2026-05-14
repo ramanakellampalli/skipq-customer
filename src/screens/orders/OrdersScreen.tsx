@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   StatusBar, RefreshControl,
@@ -70,8 +70,14 @@ export default function OrdersScreen({ navigation }: any) {
   const setSync = useStudentStore(state => state.setSync);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState<Filter>('all');
+  const [visibleCount, setVisibleCount] = useState(10);
 
   const filtered = useMemo(() => applyFilter(pastOrders, activeFilter), [pastOrders, activeFilter]);
+
+  useEffect(() => { setVisibleCount(10); }, [activeFilter]);
+
+  const visible = filtered.slice(0, visibleCount);
+  const hasMore = filtered.length > visibleCount;
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -172,9 +178,19 @@ export default function OrdersScreen({ navigation }: any) {
                   ))}
                 </View>
                 {filtered.length > 0 ? (
-                  <View style={styles.listCard}>
-                    {filtered.map((item, index) => renderPastOrder({ item, index }))}
-                  </View>
+                  <>
+                    <View style={styles.listCard}>
+                      {visible.map((item, index) => renderPastOrder({ item, index }))}
+                    </View>
+                    {hasMore && (
+                      <TouchableOpacity
+                        style={styles.loadMoreBtn}
+                        onPress={() => setVisibleCount(c => c + 10)}
+                        activeOpacity={0.7}>
+                        <Text style={styles.loadMoreText}>Load more</Text>
+                      </TouchableOpacity>
+                    )}
+                  </>
                 ) : (
                   <View style={styles.emptyFiltered}>
                     <Text style={styles.emptyFilteredText}>No orders in this range</Text>
@@ -282,6 +298,8 @@ const styles = StyleSheet.create({
   rowAmount: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
   rowAmountVoided: { textDecorationLine: 'line-through', color: colors.textSecondary },
 
+  loadMoreBtn: { alignItems: 'center', paddingVertical: spacing.md },
+  loadMoreText: { fontFamily: font.semiBold, fontSize: 14, color: colors.primary },
   emptyFiltered: { paddingVertical: spacing.lg, alignItems: 'center' },
   emptyFilteredText: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, gap: spacing.sm },
