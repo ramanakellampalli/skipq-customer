@@ -58,7 +58,11 @@ function OrdersNavigator() {
   return (
     <OrdersStack.Navigator screenOptions={{ headerShown: false }}>
       <OrdersStack.Screen name="OrdersList" component={OrdersScreen} />
-      <OrdersStack.Screen name="OrderTracking" component={OrderTrackingScreen} />
+      <OrdersStack.Screen
+        name="OrderTracking"
+        component={OrderTrackingScreen}
+        options={{ gestureEnabled: true, gestureDirection: 'horizontal' }}
+      />
     </OrdersStack.Navigator>
   );
 }
