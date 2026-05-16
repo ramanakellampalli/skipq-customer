@@ -1,5 +1,6 @@
 export type OrderStatus =
   | 'AWAITING_PAYMENT'
+  | 'SCHEDULED'
   | 'PENDING'
   | 'ACCEPTED'
   | 'PREPARING'
@@ -7,6 +8,8 @@ export type OrderStatus =
   | 'COMPLETED'
   | 'REJECTED'
   | 'CANCELLED';
+
+export type OrderType = 'IMMEDIATE' | 'SCHEDULED';
 
 export interface PlaceOrderResponse {
   orderId: string;
@@ -64,7 +67,7 @@ export interface Order {
     fees: { platformFee: number; paymentTerminalFee: number; totalServiceFee: number };
     totalAmount: number;
   };
-  timeline: { createdAt: string; estimatedReadyAt: string };
+  timeline: { createdAt: string; estimatedReadyAt: string; orderType: OrderType; scheduledPickupAt: string | null };
   items: OrderItem[];
 }
 

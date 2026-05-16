@@ -8,7 +8,7 @@ import { useStudentStore } from '../../store/studentStore';
 import { colors, font, radius, spacing } from '../../theme';
 import { Order, OrderStatus } from '../../types';
 
-const STEPS: { status: OrderStatus; label: string; sublabel: string }[] = [
+const IMMEDIATE_STEPS: { status: OrderStatus; label: string; sublabel: string }[] = [
   { status: 'AWAITING_PAYMENT', label: 'Confirming Payment', sublabel: 'Verifying your payment…' },
   { status: 'PENDING',          label: 'Order Placed',       sublabel: 'Waiting for vendor to confirm' },
   { status: 'ACCEPTED',         label: 'Accepted',           sublabel: 'Vendor confirmed your order' },
@@ -17,11 +17,18 @@ const STEPS: { status: OrderStatus; label: string; sublabel: string }[] = [
   { status: 'COMPLETED',        label: 'Completed',          sublabel: 'Enjoy your meal!' },
 ];
 
-const STATUS_ORDER: OrderStatus[] = ['AWAITING_PAYMENT', 'PENDING', 'ACCEPTED', 'PREPARING', 'READY', 'COMPLETED'];
+const SCHEDULED_STEPS: { status: OrderStatus; label: string; sublabel: string }[] = [
+  { status: 'AWAITING_PAYMENT', label: 'Confirming Payment', sublabel: 'Verifying your payment…' },
+  { status: 'SCHEDULED',        label: 'Order Scheduled',    sublabel: 'We\'ll notify the vendor at pickup time' },
+  { status: 'PENDING',          label: 'Sent to Vendor',     sublabel: 'Vendor is being notified' },
+  { status: 'ACCEPTED',         label: 'Accepted',           sublabel: 'Vendor confirmed your order' },
+  { status: 'PREPARING',        label: 'Being Prepared',     sublabel: 'Your food is being made' },
+  { status: 'READY',            label: 'Ready for Pickup',   sublabel: 'Head to the counter now!' },
+  { status: 'COMPLETED',        label: 'Completed',          sublabel: 'Enjoy your meal!' },
+];
 
-function stepIndex(status: OrderStatus) {
-  return STATUS_ORDER.indexOf(status);
-}
+const IMMEDIATE_ORDER: OrderStatus[] = ['AWAITING_PAYMENT', 'PENDING', 'ACCEPTED', 'PREPARING', 'READY', 'COMPLETED'];
+const SCHEDULED_ORDER: OrderStatus[] = ['AWAITING_PAYMENT', 'SCHEDULED', 'PENDING', 'ACCEPTED', 'PREPARING', 'READY', 'COMPLETED'];
 
 export default function OrderTrackingScreen({ route, navigation }: any) {
   const { orderId } = route.params;
@@ -35,7 +42,10 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
   const [cancelling, setCancelling] = useState(false);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const orderStatus = order?.state.orderStatus;
-  const canCancel = orderStatus === 'PENDING';
+  const isScheduledOrder = order?.timeline.orderType === 'SCHEDULED';
+  const steps = isScheduledOrder ? SCHEDULED_STEPS : IMMEDIATE_STEPS;
+  const statusOrder = isScheduledOrder ? SCHEDULED_ORDER : IMMEDIATE_ORDER;
+  const canCancel = orderStatus === 'PENDING' || orderStatus === 'SCHEDULED';
 
   const handleCancel = () => {
     Alert.alert(
@@ -102,7 +112,10 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
 
   const isRejected = order?.state.orderStatus === 'REJECTED';
   const isCancelled = order?.state.orderStatus === 'CANCELLED';
-  const currentIdx = order ? stepIndex(order.state.orderStatus) : 0;
+  const currentIdx = order ? statusOrder.indexOf(order.state.orderStatus) : 0;
+  const pickupTime = order?.timeline.scheduledPickupAt
+    ? new Date(order.timeline.scheduledPickupAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : null;
 
   return (
     <View style={styles.container}>
@@ -133,10 +146,13 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
         </View>
       ) : (
         <View style={styles.tracker}>
-          {STEPS.map((step, idx) => {
+          {steps.map((step, idx) => {
             const done = idx < currentIdx;
             const active = idx === currentIdx;
             const upcoming = idx > currentIdx;
+            const sublabel = step.status === 'SCHEDULED' && pickupTime
+              ? `Pickup scheduled for ${pickupTime}`
+              : step.sublabel;
 
             return (
               <View key={step.status} style={styles.stepRow}>
@@ -150,7 +166,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
                   ) : (
                     <Circle size={24} color={colors.border} />
                   )}
-                  {idx < STEPS.length - 1 && (
+                  {idx < steps.length - 1 && (
                     <View style={[styles.connector, done && styles.connectorDone]} />
                   )}
                 </View>
@@ -165,7 +181,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
                     {step.label}
                   </Text>
                   {(done || active) && (
-                    <Text style={styles.stepSublabel}>{step.sublabel}</Text>
+                    <Text style={styles.stepSublabel}>{sublabel}</Text>
                   )}
                 </View>
               </View>

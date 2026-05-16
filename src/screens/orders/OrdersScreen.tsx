@@ -19,6 +19,7 @@ const FILTERS: { key: Filter; label: string }[] = [
 ];
 
 const ACTIVE_STATUS_COLOR: Record<string, string> = {
+  SCHEDULED: colors.primary,
   PENDING:   colors.textSecondary,
   ACCEPTED:  colors.info,
   PREPARING: colors.warning,
@@ -26,6 +27,7 @@ const ACTIVE_STATUS_COLOR: Record<string, string> = {
 };
 
 const ACTIVE_STATUS_LABEL: Record<string, string> = {
+  SCHEDULED: 'Scheduled',
   PENDING:   'Pending',
   ACCEPTED:  'Accepted',
   PREPARING: 'Preparing',
@@ -151,6 +153,11 @@ export default function OrdersScreen({ navigation }: any) {
                 <Text style={styles.activeItems} numberOfLines={1}>
                   {activeOrder.items.map(i => `${i.quantity}× ${i.name}`).join(', ')}
                 </Text>
+                {activeOrder.timeline.orderType === 'SCHEDULED' && activeOrder.timeline.scheduledPickupAt && (
+                  <Text style={styles.activePickup}>
+                    Pickup at {new Date(activeOrder.timeline.scheduledPickupAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+                )}
                 <View style={styles.activeFooter}>
                   <Text style={[styles.activeStatus, { color: ACTIVE_STATUS_COLOR[activeOrder.state.orderStatus] }]}>
                     {ACTIVE_STATUS_LABEL[activeOrder.state.orderStatus]}
@@ -239,6 +246,7 @@ const styles = StyleSheet.create({
   activeFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
   activeStatus: { fontFamily: font.semiBold, fontSize: 13 },
   activeTotal: { fontFamily: font.bold, fontSize: 15, color: colors.textPrimary },
+  activePickup: { fontFamily: font.medium, fontSize: 12, color: colors.primary, marginTop: 2 },
 
   sectionRow: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.xs },
   sectionLabel: { fontFamily: font.semiBold, fontSize: 12, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
