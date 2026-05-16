@@ -354,11 +354,6 @@ export default function VendorMenuScreen({ route, navigation }: any) {
         </View>
         <View style={styles.itemInfo}>
           <Text style={[styles.itemName, unavailable && styles.textDimmed]}>{item.name}</Text>
-          {item.description ? (
-            <Text style={[styles.itemDesc, unavailable && styles.textDimmed]} numberOfLines={2}>
-              {item.description}
-            </Text>
-          ) : null}
           <Text style={[styles.itemPrice, unavailable && styles.textDimmed]}>
             {unavailable ? 'Unavailable' : priceDisplay(item)}
           </Text>
@@ -613,12 +608,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: radius.md,
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
     gap: spacing.sm,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   itemUnavailable: { opacity: 0.45 },
   itemThumb: {
@@ -635,7 +630,6 @@ const styles = StyleSheet.create({
   itemThumbEmoji: { fontSize: 28 },
   itemInfo: { flex: 1, gap: 3 },
   itemName: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
-  itemDesc: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary },
   itemPrice: { fontFamily: font.semiBold, fontSize: 13, color: colors.textPrimary },
   textDimmed: { color: colors.textSecondary },
   addBtn: {
