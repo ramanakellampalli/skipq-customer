@@ -134,7 +134,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
   const renderItem = ({ item }: { item: CartItem }) => (
     <View style={styles.row}>
       <View style={styles.itemThumb}>
-        <Text style={styles.itemThumbEmoji}>{getItemEmoji(item.name)}</Text>
+        <Text style={styles.itemThumbEmoji}>{getItemEmoji(item.name, item.category)}</Text>
       </View>
       <View style={styles.rowInfo}>
         <Text style={styles.itemName}>

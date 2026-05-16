@@ -95,6 +95,7 @@ export interface CartItem {
   menuItemId: string;
   name: string;
   variantLabel?: string;
+  category?: string;
   price: number;
   quantity: number;
 }

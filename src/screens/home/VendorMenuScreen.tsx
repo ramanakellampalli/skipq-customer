@@ -47,6 +47,7 @@ function VariantPicker({ item, vendorId, vendorName, onClose }: VariantPickerPro
       variantId: variant.id,
       menuItemId: item.id,
       name: item.name,
+      category: item.category,
       variantLabel: variant.label,
       price: variant.price,
     });
@@ -66,6 +67,7 @@ function VariantPicker({ item, vendorId, vendorName, onClose }: VariantPickerPro
                 variantId: variant.id,
                 menuItemId: item.id,
                 name: item.name,
+                category: item.category,
                 variantLabel: variant.label,
                 price: variant.price,
               });
@@ -253,10 +255,10 @@ export default function VendorMenuScreen({ route, navigation }: any) {
 
   const handleTap = (item: MenuItem) => {
     if (item.variants.length === 0) {
-      doAddItem(vendor.id, vendor.name, { menuItemId: item.id, name: item.name, price: item.price });
+      doAddItem(vendor.id, vendor.name, { menuItemId: item.id, name: item.name, category: item.category, price: item.price });
     } else if (item.variants.length === 1) {
       const variant = item.variants[0];
-      doAddItem(vendor.id, vendor.name, { variantId: variant.id, menuItemId: item.id, name: item.name, variantLabel: variant.label, price: variant.price });
+      doAddItem(vendor.id, vendor.name, { variantId: variant.id, menuItemId: item.id, name: item.name, category: item.category, variantLabel: variant.label, price: variant.price });
     } else {
       setPickerItem(item);
     }
