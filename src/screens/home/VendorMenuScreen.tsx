@@ -613,12 +613,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: radius.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: 10,
     paddingHorizontal: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
     gap: spacing.sm,
-    marginBottom: spacing.sm,
+    marginBottom: 6,
   },
   itemUnavailable: { opacity: 0.45 },
   itemThumb: {
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
   itemInfo: { flex: 1, gap: 3 },
   itemName: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
   itemDesc: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary },
-  itemPrice: { fontFamily: font.bold, fontSize: 14, color: colors.primary },
+  itemPrice: { fontFamily: font.semiBold, fontSize: 13, color: colors.textPrimary },
   textDimmed: { color: colors.textSecondary },
   addBtn: {
     backgroundColor: colors.primary,
