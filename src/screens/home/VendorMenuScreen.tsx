@@ -21,6 +21,38 @@ import { getRecentVendorOrders, resolveReorderItems } from '../../utils/reorder'
 
 const CART_BAR_HEIGHT = 80;
 
+function getItemEmoji(name: string, category: string): string {
+  const n = name.toLowerCase();
+  const c = (category || '').toLowerCase();
+  if (n.includes('coffee')) return '☕';
+  if (n.includes('tea') || n.includes('chai')) return '🍵';
+  if (n.includes('juice') || n.includes('shake') || n.includes('smoothie') || n.includes('lassi')) return '🥤';
+  if (n.includes('dosa')) return '🥞';
+  if (n.includes('idli') || n.includes('vada') || n.includes('medu')) return '🫘';
+  if (n.includes('biryani') || n.includes('pulao') || n.includes('rice')) return '🍛';
+  if (n.includes('pizza')) return '🍕';
+  if (n.includes('burger') || n.includes('sandwich') || n.includes('wrap')) return '🥪';
+  if (n.includes('noodle') || n.includes('pasta') || n.includes('maggi')) return '🍜';
+  if (n.includes('soup')) return '🥣';
+  if (n.includes('roti') || n.includes('paratha') || n.includes('naan') || n.includes('chapati')) return '🫓';
+  if (n.includes('thali') || n.includes('combo') || n.includes('meal') || n.includes('platter')) return '🍱';
+  if (n.includes('chicken') || n.includes('tikka') || n.includes('kebab') || n.includes('tandoor')) return '🍗';
+  if (n.includes('fish') || n.includes('prawn') || n.includes('seafood')) return '🐟';
+  if (n.includes('egg') || n.includes('omelette')) return '🍳';
+  if (n.includes('paneer') || n.includes('cheese')) return '🧀';
+  if (n.includes('masala') || n.includes('curry') || n.includes('gravy')) return '🥘';
+  if (n.includes('salad') || n.includes('raita')) return '🥗';
+  if (n.includes('cake') || n.includes('brownie') || n.includes('pastry')) return '🍰';
+  if (n.includes('ice cream') || n.includes('kulfi') || n.includes('gelato')) return '🍦';
+  if (n.includes('samosa') || n.includes('pakora') || n.includes('bhaji') || n.includes('fritter')) return '🥟';
+  if (n.includes('pav') || n.includes('bhel') || n.includes('chaat') || n.includes('puri')) return '🫔';
+  if (c.includes('drink') || c.includes('beverage') || c.includes('juice')) return '🥤';
+  if (c.includes('dessert') || c.includes('sweet') || c.includes('mithai')) return '🍮';
+  if (c.includes('snack') || c.includes('starter') || c.includes('appetizer')) return '🍿';
+  if (c.includes('breakfast')) return '🍳';
+  return '🍽️';
+}
+
 // ─── Variant picker sheet ─────────────────────────────────────────────────────
 
 interface VariantPickerProps {
@@ -317,12 +349,11 @@ export default function VendorMenuScreen({ route, navigation }: any) {
 
     return (
       <View key={item.id} style={[styles.itemCard, unavailable && styles.itemUnavailable]}>
+        <View style={styles.itemThumb}>
+          <Text style={styles.itemThumbEmoji}>{getItemEmoji(item.name, item.category || '')}</Text>
+        </View>
         <View style={styles.itemInfo}>
-          <View style={styles.itemTitleRow}>
-            {/* eslint-disable-next-line react-native/no-inline-styles */}
-            <View style={[styles.vegDot, { backgroundColor: item.isVeg ? colors.success : '#e53935' }]} />
-            <Text style={[styles.itemName, unavailable && styles.textDimmed]}>{item.name}</Text>
-          </View>
+          <Text style={[styles.itemName, unavailable && styles.textDimmed]}>{item.name}</Text>
           {item.description ? (
             <Text style={[styles.itemDesc, unavailable && styles.textDimmed]} numberOfLines={2}>
               {item.description}
@@ -501,6 +532,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
 function SkeletonItem() {
   return (
     <View style={[styles.itemCard, { gap: spacing.sm }]}>
+      <Skeleton width={56} height={56} borderRadius={radius.md} />
       <View style={styles.itemInfo}>
         <Skeleton width="65%" height={16} />
         <Skeleton width={56} height={14} style={styles.skeletonMeta} />
@@ -589,12 +621,22 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   itemUnavailable: { opacity: 0.45 },
+  itemThumb: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.md,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  itemThumbEmoji: { fontSize: 28 },
   itemInfo: { flex: 1, gap: 3 },
-  itemTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  vegDot: { width: 9, height: 9, borderRadius: 5, flexShrink: 0 },
-  itemName: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary, flex: 1 },
-  itemDesc: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary, marginLeft: 15 },
-  itemPrice: { fontFamily: font.bold, fontSize: 14, color: colors.primary, marginLeft: 15 },
+  itemName: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
+  itemDesc: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary },
+  itemPrice: { fontFamily: font.bold, fontSize: 14, color: colors.primary },
   textDimmed: { color: colors.textSecondary },
   addBtn: {
     backgroundColor: colors.primary,
