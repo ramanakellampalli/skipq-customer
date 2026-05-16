@@ -35,8 +35,8 @@ export const api = {
       client.get<StudentSyncResponse>('/api/v1/student/sync'),
     getMenu: (vendorId: string) =>
       client.get<StudentMenuResponse>(`/api/v1/student/menu/${vendorId}`),
-    placeOrder: (vendorId: string, items: { menuItemId: string; variantId?: string; quantity: number }[]) =>
-      client.post<PlaceOrderResponse>('/api/v1/student/orders', { vendorId, items }),
+    placeOrder: (vendorId: string, items: { menuItemId: string; variantId?: string; quantity: number }[], scheduledPickupAt?: string) =>
+      client.post<PlaceOrderResponse>('/api/v1/student/orders', { vendorId, items, scheduledPickupAt }),
     getOrder: (orderId: string) =>
       client.get<Order>(`/api/v1/orders/${orderId}`),
     cancelOrder: (orderId: string) =>

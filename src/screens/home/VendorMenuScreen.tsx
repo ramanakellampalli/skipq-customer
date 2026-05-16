@@ -18,6 +18,7 @@ import ImageCarousel from '../../components/ImageCarousel';
 import ReorderCard from '../../components/ReorderCard';
 import Skeleton from '../../components/Skeleton';
 import { getRecentVendorOrders, resolveReorderItems } from '../../utils/reorder';
+import { getItemEmoji } from '../../utils/foodEmoji';
 
 const CART_BAR_HEIGHT = 80;
 
@@ -46,6 +47,7 @@ function VariantPicker({ item, vendorId, vendorName, onClose }: VariantPickerPro
       variantId: variant.id,
       menuItemId: item.id,
       name: item.name,
+      category: item.category,
       variantLabel: variant.label,
       price: variant.price,
     });
@@ -65,6 +67,7 @@ function VariantPicker({ item, vendorId, vendorName, onClose }: VariantPickerPro
                 variantId: variant.id,
                 menuItemId: item.id,
                 name: item.name,
+                category: item.category,
                 variantLabel: variant.label,
                 price: variant.price,
               });
@@ -252,10 +255,10 @@ export default function VendorMenuScreen({ route, navigation }: any) {
 
   const handleTap = (item: MenuItem) => {
     if (item.variants.length === 0) {
-      doAddItem(vendor.id, vendor.name, { menuItemId: item.id, name: item.name, price: item.price });
+      doAddItem(vendor.id, vendor.name, { menuItemId: item.id, name: item.name, category: item.category, price: item.price });
     } else if (item.variants.length === 1) {
       const variant = item.variants[0];
-      doAddItem(vendor.id, vendor.name, { variantId: variant.id, menuItemId: item.id, name: item.name, variantLabel: variant.label, price: variant.price });
+      doAddItem(vendor.id, vendor.name, { variantId: variant.id, menuItemId: item.id, name: item.name, category: item.category, variantLabel: variant.label, price: variant.price });
     } else {
       setPickerItem(item);
     }
@@ -317,17 +320,11 @@ export default function VendorMenuScreen({ route, navigation }: any) {
 
     return (
       <View key={item.id} style={[styles.itemCard, unavailable && styles.itemUnavailable]}>
+        <View style={styles.itemThumb}>
+          <Text style={styles.itemThumbEmoji}>{getItemEmoji(item.name, item.category || '')}</Text>
+        </View>
         <View style={styles.itemInfo}>
-          <View style={styles.itemTitleRow}>
-            {/* eslint-disable-next-line react-native/no-inline-styles */}
-            <View style={[styles.vegDot, { backgroundColor: item.isVeg ? colors.success : '#e53935' }]} />
-            <Text style={[styles.itemName, unavailable && styles.textDimmed]}>{item.name}</Text>
-          </View>
-          {item.description ? (
-            <Text style={[styles.itemDesc, unavailable && styles.textDimmed]} numberOfLines={2}>
-              {item.description}
-            </Text>
-          ) : null}
+          <Text style={[styles.itemName, unavailable && styles.textDimmed]}>{item.name}</Text>
           <Text style={[styles.itemPrice, unavailable && styles.textDimmed]}>
             {unavailable ? 'Unavailable' : priceDisplay(item)}
           </Text>
@@ -501,6 +498,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
 function SkeletonItem() {
   return (
     <View style={[styles.itemCard, { gap: spacing.sm }]}>
+      <Skeleton width={56} height={56} borderRadius={radius.md} />
       <View style={styles.itemInfo}>
         <Skeleton width="65%" height={16} />
         <Skeleton width={56} height={14} style={styles.skeletonMeta} />
@@ -581,19 +579,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: radius.md,
-    padding: spacing.md,
+    paddingVertical: 8,
+    paddingHorizontal: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
     gap: spacing.sm,
-    marginBottom: spacing.sm,
+    marginBottom: 4,
   },
   itemUnavailable: { opacity: 0.45 },
+  itemThumb: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.md,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  itemThumbEmoji: { fontSize: 28 },
   itemInfo: { flex: 1, gap: 3 },
-  itemTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  vegDot: { width: 9, height: 9, borderRadius: 5, flexShrink: 0 },
-  itemName: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary, flex: 1 },
-  itemDesc: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary, marginLeft: 15 },
-  itemPrice: { fontFamily: font.bold, fontSize: 14, color: colors.primary, marginLeft: 15 },
+  itemName: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
+  itemPrice: { fontFamily: font.semiBold, fontSize: 13, color: colors.textPrimary },
   textDimmed: { color: colors.textSecondary },
   addBtn: {
     backgroundColor: colors.primary,
