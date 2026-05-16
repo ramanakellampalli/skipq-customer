@@ -18,40 +18,9 @@ import ImageCarousel from '../../components/ImageCarousel';
 import ReorderCard from '../../components/ReorderCard';
 import Skeleton from '../../components/Skeleton';
 import { getRecentVendorOrders, resolveReorderItems } from '../../utils/reorder';
+import { getItemEmoji } from '../../utils/foodEmoji';
 
 const CART_BAR_HEIGHT = 80;
-
-function getItemEmoji(name: string, category: string): string {
-  const n = name.toLowerCase();
-  const c = (category || '').toLowerCase();
-  if (n.includes('coffee')) return '☕';
-  if (n.includes('tea') || n.includes('chai')) return '🍵';
-  if (n.includes('juice') || n.includes('shake') || n.includes('smoothie') || n.includes('lassi')) return '🥤';
-  if (n.includes('dosa')) return '🥞';
-  if (n.includes('idli') || n.includes('vada') || n.includes('medu')) return '🫘';
-  if (n.includes('biryani') || n.includes('pulao') || n.includes('rice')) return '🍛';
-  if (n.includes('pizza')) return '🍕';
-  if (n.includes('burger') || n.includes('sandwich') || n.includes('wrap')) return '🥪';
-  if (n.includes('noodle') || n.includes('pasta') || n.includes('maggi')) return '🍜';
-  if (n.includes('soup')) return '🥣';
-  if (n.includes('roti') || n.includes('paratha') || n.includes('naan') || n.includes('chapati')) return '🫓';
-  if (n.includes('thali') || n.includes('combo') || n.includes('meal') || n.includes('platter')) return '🍱';
-  if (n.includes('chicken') || n.includes('tikka') || n.includes('kebab') || n.includes('tandoor')) return '🍗';
-  if (n.includes('fish') || n.includes('prawn') || n.includes('seafood')) return '🐟';
-  if (n.includes('egg') || n.includes('omelette')) return '🍳';
-  if (n.includes('paneer') || n.includes('cheese')) return '🧀';
-  if (n.includes('masala') || n.includes('curry') || n.includes('gravy')) return '🥘';
-  if (n.includes('salad') || n.includes('raita')) return '🥗';
-  if (n.includes('cake') || n.includes('brownie') || n.includes('pastry')) return '🍰';
-  if (n.includes('ice cream') || n.includes('kulfi') || n.includes('gelato')) return '🍦';
-  if (n.includes('samosa') || n.includes('pakora') || n.includes('bhaji') || n.includes('fritter')) return '🥟';
-  if (n.includes('pav') || n.includes('bhel') || n.includes('chaat') || n.includes('puri')) return '🫔';
-  if (c.includes('drink') || c.includes('beverage') || c.includes('juice')) return '🥤';
-  if (c.includes('dessert') || c.includes('sweet') || c.includes('mithai')) return '🍮';
-  if (c.includes('snack') || c.includes('starter') || c.includes('appetizer')) return '🍿';
-  if (c.includes('breakfast')) return '🍳';
-  return '🍽️';
-}
 
 // ─── Variant picker sheet ─────────────────────────────────────────────────────
 

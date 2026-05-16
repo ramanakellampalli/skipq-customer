@@ -8,6 +8,7 @@ import { X, Minus, Plus, ShoppingBag, ChevronDown, ChevronUp, Clock } from 'luci
 import RazorpayCheckout from 'react-native-razorpay';
 import { api } from '../api';
 import { useCartStore } from '../store/cartStore';
+import { getItemEmoji } from '../utils/foodEmoji';
 import { colors, font, radius, spacing } from '../theme';
 import { CartItem } from '../types';
 
@@ -132,6 +133,9 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
 
   const renderItem = ({ item }: { item: CartItem }) => (
     <View style={styles.row}>
+      <View style={styles.itemThumb}>
+        <Text style={styles.itemThumbEmoji}>{getItemEmoji(item.name)}</Text>
+      </View>
       <View style={styles.rowInfo}>
         <Text style={styles.itemName}>
           {item.name}{item.variantLabel ? ` · ${item.variantLabel}` : ''}
@@ -350,14 +354,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     gap: spacing.sm,
   },
+  itemThumb: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.md,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  itemThumbEmoji: { fontSize: 28 },
   rowInfo: { flex: 1, gap: 2 },
-  itemName: { fontFamily: font.medium, fontSize: 14, color: colors.textPrimary },
-  itemPrice: { fontFamily: font.semiBold, fontSize: 14, color: colors.primary },
+  itemName: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
+  itemPrice: { fontFamily: font.semiBold, fontSize: 13, color: colors.textPrimary },
   qtyControl: {
     flexDirection: 'row',
     alignItems: 'center',
