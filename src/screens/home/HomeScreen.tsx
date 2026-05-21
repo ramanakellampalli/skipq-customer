@@ -113,6 +113,11 @@ export default function HomeScreen({ navigation }: any) {
               <Text style={styles.cartPillText}>{cartCount} in cart</Text>
             </View>
           )}
+
+          {/* Logo badge — anchored to banner bottom, overlaps cardBody */}
+          {item.logoUrl && (
+            <Image source={{ uri: item.logoUrl }} style={styles.logoBadge} />
+          )}
         </View>
 
         {/* Info row */}
@@ -380,7 +385,18 @@ const styles = StyleSheet.create({
   },
   cartPillText: { fontFamily: font.semiBold, fontSize: 11, color: colors.white },
 
-  cardBody: { padding: spacing.md, gap: 4 },
+  logoBadge: {
+    position: 'absolute',
+    bottom: -20,
+    left: spacing.md,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: colors.surface,
+    backgroundColor: colors.surface,
+  },
+  cardBody: { paddingHorizontal: spacing.md, paddingTop: spacing.md + 20, paddingBottom: spacing.md, gap: 4 },
   vendorName: { fontFamily: font.bold, fontSize: 17, color: colors.textPrimary },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   metaText: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
