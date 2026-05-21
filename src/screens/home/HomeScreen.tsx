@@ -113,12 +113,12 @@ export default function HomeScreen({ navigation }: any) {
               <Text style={styles.cartPillText}>{cartCount} in cart</Text>
             </View>
           )}
-        </View>
 
-        {/* Logo badge */}
-        {item.logoUrl && (
-          <Image source={{ uri: item.logoUrl }} style={styles.logoBadge} />
-        )}
+          {/* Logo badge — anchored to banner bottom, overlaps cardBody */}
+          {item.logoUrl && (
+            <Image source={{ uri: item.logoUrl }} style={styles.logoBadge} />
+          )}
+        </View>
 
         {/* Info row */}
         <View style={styles.cardBody}>
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
 
   logoBadge: {
     position: 'absolute',
-    bottom: -16,
+    bottom: -20,
     left: spacing.md,
     width: 40,
     height: 40,
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
     borderColor: colors.surface,
     backgroundColor: colors.surface,
   },
-  cardBody: { padding: spacing.md, gap: 4 },
+  cardBody: { paddingHorizontal: spacing.md, paddingTop: spacing.md + 20, paddingBottom: spacing.md, gap: 4 },
   vendorName: { fontFamily: font.bold, fontSize: 17, color: colors.textPrimary },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   metaText: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
