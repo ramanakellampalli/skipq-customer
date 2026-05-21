@@ -26,6 +26,7 @@ export interface Vendor {
   gstRegistered: boolean;
   campusId?: string;
   campusName?: string;
+  logoUrl?: string;
 }
 
 export interface MenuVariant {
