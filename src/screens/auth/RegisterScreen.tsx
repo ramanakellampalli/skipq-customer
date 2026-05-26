@@ -35,8 +35,9 @@ export default function RegisterScreen({ navigation }: any) {
     }
     try {
       setLoading(true);
-      await api.auth.register(name.trim(), email.trim(), password, `+91${phone.trim()}`);
-      navigation.navigate('Otp', { email: email.trim(), name: name.trim(), password });
+      const fullPhone = `+91${phone.trim()}`;
+      await api.auth.register(name.trim(), email.trim(), password, fullPhone);
+      navigation.navigate('Otp', { email: email.trim(), name: name.trim(), password, phone: fullPhone });
     } catch (err: any) {
       Alert.alert('Registration Failed', err.response?.data?.message || 'Something went wrong');
     } finally {
