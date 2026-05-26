@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { LogOut, MapPin, Mail, Trash2, Bell, BellOff, HeadphonesIcon, ChevronRight } from 'lucide-react-native';
+import { LogOut, MapPin, Mail, Phone, Trash2, Bell, BellOff, HeadphonesIcon, ChevronRight } from 'lucide-react-native';
 import { AuthorizationStatus } from '@react-native-firebase/messaging';
 import { useAuthStore } from '../../store/authStore';
 import { useStudentStore } from '../../store/studentStore';
@@ -113,6 +113,20 @@ export default function ProfileScreen() {
             <Text style={styles.rowValue} numberOfLines={1}>{profile?.email ?? '—'}</Text>
           </View>
         </View>
+        {profile?.phone && (
+          <>
+            <View style={styles.divider} />
+            <View style={styles.row}>
+              <View style={styles.iconWrap}>
+                <Phone size={16} color={colors.primary} />
+              </View>
+              <View style={styles.rowContent}>
+                <Text style={styles.rowLabel}>Phone</Text>
+                <Text style={styles.rowValue}>{profile.phone}</Text>
+              </View>
+            </View>
+          </>
+        )}
         {profile?.campusName && (
           <>
             <View style={styles.divider} />

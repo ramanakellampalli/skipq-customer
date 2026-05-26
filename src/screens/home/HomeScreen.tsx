@@ -126,6 +126,13 @@ export default function HomeScreen({ navigation }: any) {
           <View style={styles.metaRow}>
             <Clock size={12} color={colors.textSecondary} />
             <Text style={styles.metaText}>~{item.prepTime} min</Text>
+            {!item.campusName && item.city && (
+              <>
+                <Text style={styles.metaDot}>·</Text>
+                <MapPin size={12} color={colors.textSecondary} />
+                <Text style={styles.metaText}>{item.city}</Text>
+              </>
+            )}
           </View>
         </View>
       </TouchableOpacity>
@@ -144,10 +151,12 @@ export default function HomeScreen({ navigation }: any) {
     <View>
       {/* Greeting */}
       <View style={styles.greetingWrap}>
-        <View style={styles.locationRow}>
-          <MapPin size={13} color={colors.primary} />
-          <Text style={styles.locationText}>{profile?.campusName ?? 'Campus'}</Text>
-        </View>
+        {profile?.campusName && (
+          <View style={styles.locationRow}>
+            <MapPin size={13} color={colors.primary} />
+            <Text style={styles.locationText}>{profile.campusName}</Text>
+          </View>
+        )}
         <Text style={styles.greetingLine}>
           {greeting()},{' '}
           <Text style={styles.greetingName}>{profile?.name?.split(' ')[0] ?? 'there'} 👋</Text>
@@ -400,6 +409,7 @@ const styles = StyleSheet.create({
   vendorName: { fontFamily: font.bold, fontSize: 17, color: colors.textPrimary },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   metaText: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
+  metaDot: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
 
   divider: {
     flexDirection: 'row',

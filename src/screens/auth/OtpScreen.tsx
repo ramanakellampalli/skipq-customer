@@ -11,7 +11,7 @@ const OTP_LENGTH = 6;
 const RESEND_COOLDOWN = 60;
 
 export default function OtpScreen({ route, navigation }: any) {
-  const { email, name, password } = route.params as { email: string; name: string; password: string };
+  const { email, name, password, phone } = route.params as { email: string; name: string; password: string; phone: string };
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''));
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -62,7 +62,7 @@ export default function OtpScreen({ route, navigation }: any) {
     if (countdown > 0 || resending) return;
     try {
       setResending(true);
-      await api.auth.register(name, email, password);
+      await api.auth.register(name, email, password, phone);
       setCountdown(RESEND_COOLDOWN);
       setOtp(Array(OTP_LENGTH).fill(''));
       inputs.current[0]?.focus();

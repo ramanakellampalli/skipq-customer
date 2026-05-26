@@ -11,13 +11,18 @@ import LoadingDots from '../../components/LoadingDots';
 export default function RegisterScreen({ navigation }: any) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!name.trim() || !email.trim() || !password) {
+    if (!name.trim() || !email.trim() || !phone.trim() || !password) {
       Alert.alert('Missing fields', 'Please fill in all fields');
+      return;
+    }
+    if (!/^\d{10}$/.test(phone.trim())) {
+      Alert.alert('Invalid phone', 'Please enter a 10-digit phone number');
       return;
     }
     if (password.length < 8) {
@@ -30,8 +35,9 @@ export default function RegisterScreen({ navigation }: any) {
     }
     try {
       setLoading(true);
-      await api.auth.register(name.trim(), email.trim(), password);
-      navigation.navigate('Otp', { email: email.trim(), name: name.trim(), password });
+      const fullPhone = `+91${phone.trim()}`;
+      await api.auth.register(name.trim(), email.trim(), password, fullPhone);
+      navigation.navigate('Otp', { email: email.trim(), name: name.trim(), password, phone: fullPhone });
     } catch (err: any) {
       Alert.alert('Registration Failed', err.response?.data?.message || 'Something went wrong');
     } finally {
@@ -80,6 +86,25 @@ export default function RegisterScreen({ navigation }: any) {
               autoCapitalize="none"
               autoCorrect={false}
             />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Phone Number</Text>
+            <View style={styles.phoneRow}>
+              <View style={styles.phonePrefix}>
+                <Text style={styles.phonePrefixText}>+91</Text>
+              </View>
+              <TextInput
+                style={styles.phoneInput}
+                value={phone}
+                onChangeText={t => setPhone(t.replace(/\D/g, '').slice(0, 10))}
+                placeholder="9876543210"
+                placeholderTextColor={colors.textSecondary}
+                keyboardType="number-pad"
+                maxLength={10}
+                autoCorrect={false}
+              />
+            </View>
           </View>
 
           <View style={styles.field}>
@@ -152,4 +177,29 @@ const styles = StyleSheet.create({
   btnText: { fontFamily: font.bold, fontSize: 16, color: colors.white },
   switchText: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
   switchLink: { fontFamily: font.semiBold, color: colors.primary },
+  phoneRow: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+  },
+  phonePrefix: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 14,
+    backgroundColor: colors.surfaceHigh ?? colors.border,
+    justifyContent: 'center',
+    borderRightWidth: 1,
+    borderRightColor: colors.border,
+  },
+  phonePrefixText: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
+  phoneInput: {
+    flex: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 14,
+    fontFamily: font.regular,
+    fontSize: 15,
+    color: colors.textPrimary,
+  },
 });
