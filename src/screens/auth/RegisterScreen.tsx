@@ -11,13 +11,18 @@ import LoadingDots from '../../components/LoadingDots';
 export default function RegisterScreen({ navigation }: any) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!name.trim() || !email.trim() || !password) {
+    if (!name.trim() || !email.trim() || !phone.trim() || !password) {
       Alert.alert('Missing fields', 'Please fill in all fields');
+      return;
+    }
+    if (!/^\+?[0-9]{7,15}$/.test(phone.trim())) {
+      Alert.alert('Invalid phone', 'Please enter a valid phone number');
       return;
     }
     if (password.length < 8) {
@@ -30,7 +35,7 @@ export default function RegisterScreen({ navigation }: any) {
     }
     try {
       setLoading(true);
-      await api.auth.register(name.trim(), email.trim(), password);
+      await api.auth.register(name.trim(), email.trim(), password, phone.trim());
       navigation.navigate('Otp', { email: email.trim(), name: name.trim(), password });
     } catch (err: any) {
       Alert.alert('Registration Failed', err.response?.data?.message || 'Something went wrong');
@@ -78,6 +83,19 @@ export default function RegisterScreen({ navigation }: any) {
               placeholderTextColor={colors.textSecondary}
               keyboardType="email-address"
               autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Phone Number</Text>
+            <TextInput
+              style={styles.input}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="+91 9876543210"
+              placeholderTextColor={colors.textSecondary}
+              keyboardType="phone-pad"
               autoCorrect={false}
             />
           </View>

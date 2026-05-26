@@ -2,12 +2,12 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import {
   View, Text, SectionList, TouchableOpacity, StyleSheet,
   StatusBar, Alert, RefreshControl, Vibration, Modal,
-  ScrollView,
+  ScrollView, Linking,
 } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withSpring,
 } from 'react-native-reanimated';
-import { ArrowLeft, Plus, Minus, ShoppingCart, X } from 'lucide-react-native';
+import { ArrowLeft, Plus, Minus, ShoppingCart, X, Phone } from 'lucide-react-native';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
 import { MenuItem, MenuVariant, Order } from '../../types';
@@ -368,6 +368,11 @@ export default function VendorMenuScreen({ route, navigation }: any) {
           <Text style={styles.vendorName}>{vendor.name}</Text>
           <Text style={styles.vendorMeta}>~{vendor.prepTime} min prep time</Text>
         </View>
+        {vendor.phone && (
+          <TouchableOpacity style={styles.callBtn} onPress={() => Linking.openURL(`tel:${vendor.phone}`)}>
+            <Phone size={18} color={colors.primary} />
+          </TouchableOpacity>
+        )}
         {showCartBar && (
           <TouchableOpacity style={styles.cartIconBtn} onPress={() => setCartVisible(true)}>
             <ShoppingCart size={20} color={colors.textPrimary} />
@@ -525,6 +530,7 @@ const styles = StyleSheet.create({
   headerInfo: { flex: 1 },
   vendorName: { fontFamily: font.bold, fontSize: 18, color: colors.textPrimary },
   vendorMeta: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
+  callBtn: { padding: 8 },
   cartIconBtn: { padding: 8, position: 'relative' },
   cartBadge: {
     position: 'absolute', top: 2, right: 2,

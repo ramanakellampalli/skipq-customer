@@ -24,8 +24,10 @@ export interface Vendor {
   isOpen: boolean;
   prepTime: number;
   gstRegistered: boolean;
-  campusId?: string;
-  campusName?: string;
+  campusId?: string | null;
+  campusName?: string | null;
+  city?: string | null;
+  phone?: string | null;
   logoUrl?: string;
 }
 
