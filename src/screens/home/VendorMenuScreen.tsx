@@ -305,13 +305,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
     }
   }, [vendor, items, addItem, incrementItem]);
 
-  const priceDisplay = (item: MenuItem) => {
-    if (item.variants.length === 0) return `₹${item.price.toFixed(2)}`;
-    const prices = item.variants.map(v => v.price);
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    return min === max ? `₹${min.toFixed(2)}` : `₹${min.toFixed(2)} – ₹${max.toFixed(2)}`;
-  };
+  const priceDisplay = (item: MenuItem) => `₹${item.price.toFixed(2)}`;
 
   const renderMenuItem = (item: MenuItem) => {
     const unavailable = !item.isAvailable;
