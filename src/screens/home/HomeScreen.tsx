@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   StatusBar, RefreshControl, TextInput, Image,
@@ -23,18 +23,14 @@ export default function HomeScreen({ navigation }: any) {
   const vendors       = useStudentStore(state => state.vendors);
   const profile       = useStudentStore(state => state.profile);
   const setSync       = useStudentStore(state => state.setSync);
+  const isSynced      = useStudentStore(state => state.isSynced);
   const vendorImages  = useStudentStore(state => state.vendorImages);
   const cartVendorId  = useCartStore(state => state.vendorId);
   const cartCount     = useCartStore(state => state.itemCount());
 
   const [isRefreshing,  setIsRefreshing]  = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(vendors.length === 0);
   const [search,        setSearch]        = useState('');
   const [activeFilters, setActiveFilters] = useState<Set<Filter>>(new Set());
-
-  useEffect(() => {
-    if (vendors.length > 0) setIsInitialLoad(false);
-  }, [vendors.length]);
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -200,7 +196,7 @@ export default function HomeScreen({ navigation }: any) {
       </View>
 
       {/* Count label */}
-      {!isInitialLoad && (
+      {isSynced && (
         <View style={styles.countRow}>
           <Text style={styles.countText}>
             {openVendors.length} open · {closedVendors.length} closed
@@ -210,7 +206,7 @@ export default function HomeScreen({ navigation }: any) {
     </View>
   );
 
-  if (isInitialLoad) {
+  if (!isSynced) {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
@@ -249,8 +245,14 @@ export default function HomeScreen({ navigation }: any) {
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>No vendors found</Text>
-            <Text style={styles.emptySub}>Try a different search or filter</Text>
+            <Text style={styles.emptyTitle}>
+              {vendors.length === 0 ? 'No vendors yet' : 'No vendors found'}
+            </Text>
+            <Text style={styles.emptySub}>
+              {vendors.length === 0
+                ? 'Check back soon — vendors will appear here once they go live'
+                : 'Try a different search or filter'}
+            </Text>
           </View>
         }
       />
