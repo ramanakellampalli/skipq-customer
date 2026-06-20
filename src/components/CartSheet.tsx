@@ -113,9 +113,15 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
           amount: data.razorpayAmountPaise,
           name: 'SkipQ',
           order_id: data.razorpayOrderId,
-          method: { upi: true, card: false, netbanking: false, wallet: false, emi: false, paylater: false },
+          config: {
+            display: {
+              blocks: { upi: { name: 'Pay via UPI', instruments: [{ method: 'upi' }] } },
+              sequence: ['block.upi'],
+              preferences: { show_default_blocks: false },
+            },
+          },
           theme: { color: colors.primary },
-        });
+        } as any);
       } catch {
         // code 0 = user dismissed the Razorpay sheet
         Alert.alert('Payment Cancelled', 'No charge was made. Your cart is intact.');
