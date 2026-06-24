@@ -39,8 +39,11 @@ function VariantPicker({ item, vendorId, vendorName, onClose }: VariantPickerPro
 
   if (!item) return null;
 
-  const getQty = (variantId: string) =>
+  const getVariantQty = (variantId: string) =>
     cartItems.find(i => i.variantId === variantId)?.quantity ?? 0;
+
+  const getBaseQty = () =>
+    cartItems.find(i => i.menuItemId === item.id && !i.variantId)?.quantity ?? 0;
 
   const handleAdd = (variant: MenuVariant) => {
     const result = addItem(vendorId, vendorName, {
@@ -81,6 +84,41 @@ function VariantPicker({ item, vendorId, vendorName, onClose }: VariantPickerPro
     }
   };
 
+  const handleAddBase = () => {
+    const result = addItem(vendorId, vendorName, {
+      menuItemId: item.id,
+      name: item.name,
+      category: item.category,
+      price: item.price,
+    });
+
+    if (result === 'switch_required') {
+      Alert.alert(
+        'Start new cart?',
+        `Your cart has items from ${useCartStore.getState().vendorName}. Clear it to order from ${vendorName}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Clear & Switch',
+            style: 'destructive',
+            onPress: () => {
+              useCartStore.getState().clear();
+              addItem(vendorId, vendorName, {
+                menuItemId: item.id,
+                name: item.name,
+                category: item.category,
+                price: item.price,
+              });
+              Vibration.vibrate(40);
+            },
+          },
+        ],
+      );
+    } else {
+      Vibration.vibrate(40);
+    }
+  };
+
   return (
     <Modal visible={!!item} transparent animationType="slide">
       <View style={pickerStyles.overlay}>
@@ -102,12 +140,41 @@ function VariantPicker({ item, vendorId, vendorName, onClose }: VariantPickerPro
           </View>
 
           <ScrollView>
+            {/* Base item row — always first */}
+            {(() => {
+              const baseQty = getBaseQty();
+              return (
+                <View key="__base__" style={pickerStyles.variantRow}>
+                  <View style={pickerStyles.variantInfo}>
+                    <Text style={pickerStyles.variantLabel}>Regular</Text>
+                    <Text style={pickerStyles.variantPrice}>₹{item.price.toFixed(2)}</Text>
+                  </View>
+                  {baseQty === 0 ? (
+                    <TouchableOpacity style={pickerStyles.addBtn} onPress={handleAddBase}>
+                      <Plus size={16} color={colors.white} />
+                      <Text style={pickerStyles.addBtnText}>Add</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <View style={pickerStyles.qtyControl}>
+                      <TouchableOpacity style={pickerStyles.qtyBtn} onPress={() => decrementItem(item.id)}>
+                        <Minus size={14} color={colors.primary} />
+                      </TouchableOpacity>
+                      <Text style={pickerStyles.qtyText}>{baseQty}</Text>
+                      <TouchableOpacity style={pickerStyles.qtyBtn} onPress={() => incrementItem(item.id)}>
+                        <Plus size={14} color={colors.primary} />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              );
+            })()}
+
             {item.variants.filter(v => v.isAvailable).map(variant => {
-              const qty = getQty(variant.id);
+              const qty = getVariantQty(variant.id);
               return (
                 <View key={variant.id} style={pickerStyles.variantRow}>
                   <View style={pickerStyles.variantInfo}>
-                    <Text style={pickerStyles.variantLabel}>{variant.label || 'Regular'}</Text>
+                    <Text style={pickerStyles.variantLabel}>{variant.label}</Text>
                     <Text style={pickerStyles.variantPrice}>₹{variant.price.toFixed(2)}</Text>
                   </View>
                   {qty === 0 ? (
@@ -256,9 +323,6 @@ export default function VendorMenuScreen({ route, navigation }: any) {
   const handleTap = (item: MenuItem) => {
     if (item.variants.length === 0) {
       doAddItem(vendor.id, vendor.name, { menuItemId: item.id, name: item.name, category: item.category, price: item.price });
-    } else if (item.variants.length === 1) {
-      const variant = item.variants[0];
-      doAddItem(vendor.id, vendor.name, { variantId: variant.id, menuItemId: item.id, name: item.name, category: item.category, variantLabel: variant.label, price: variant.price });
     } else {
       setPickerItem(item);
     }
@@ -310,7 +374,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
   const renderMenuItem = (item: MenuItem) => {
     const unavailable = !item.isAvailable;
     const totalQty = getItemTotalQty(item);
-    const hasMultiVariant = item.variants.length > 1;
+    const hasVariants = item.variants.length > 0;
 
     return (
       <View key={item.id} style={[styles.itemCard, unavailable && styles.itemUnavailable]}>
@@ -322,6 +386,9 @@ export default function VendorMenuScreen({ route, navigation }: any) {
           <Text style={[styles.itemPrice, unavailable && styles.textDimmed]}>
             {unavailable ? 'Unavailable' : priceDisplay(item)}
           </Text>
+          {!unavailable && hasVariants && (
+            <Text style={styles.customisableTag}>Customisable</Text>
+          )}
         </View>
 
         {!unavailable && (
@@ -329,18 +396,18 @@ export default function VendorMenuScreen({ route, navigation }: any) {
             <TouchableOpacity style={styles.addBtn} onPress={() => handleTap(item)} activeOpacity={0.8}>
               <Plus size={18} color={colors.white} />
             </TouchableOpacity>
-          ) : hasMultiVariant ? (
+          ) : hasVariants ? (
             <TouchableOpacity style={styles.multiQtyBtn} onPress={() => setPickerItem(item)} activeOpacity={0.8}>
               <Plus size={14} color={colors.primary} />
               <Text style={styles.multiQtyText}>{totalQty}</Text>
             </TouchableOpacity>
           ) : (
             <View style={styles.qtyControl}>
-              <TouchableOpacity style={styles.qtyBtn} onPress={() => decrementItem(item.variants.length === 0 ? item.id : item.variants[0].id)}>
+              <TouchableOpacity style={styles.qtyBtn} onPress={() => decrementItem(item.id)}>
                 <Minus size={14} color={colors.primary} />
               </TouchableOpacity>
               <Text style={styles.qtyText}>{totalQty}</Text>
-              <TouchableOpacity style={styles.qtyBtn} onPress={() => incrementItem(item.variants.length === 0 ? item.id : item.variants[0].id)}>
+              <TouchableOpacity style={styles.qtyBtn} onPress={() => incrementItem(item.id)}>
                 <Plus size={14} color={colors.primary} />
               </TouchableOpacity>
             </View>
@@ -602,6 +669,7 @@ const styles = StyleSheet.create({
   itemInfo: { flex: 1, gap: 3 },
   itemName: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
   itemPrice: { fontFamily: font.semiBold, fontSize: 13, color: colors.textPrimary },
+  customisableTag: { fontFamily: font.regular, fontSize: 11, color: colors.primary },
   textDimmed: { color: colors.textSecondary },
   addBtn: {
     backgroundColor: colors.primary,
