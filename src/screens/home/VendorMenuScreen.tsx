@@ -467,7 +467,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
             </View>
             <Text style={styles.cartBarLabel}>View Cart</Text>
           </View>
-          <Text style={styles.cartBarTotal}>₹{(total * 1.05).toFixed(2)}</Text>
+          <Text style={styles.cartBarTotal}>₹{(total + (vendor.gstRegistered ? total * 0.05 : 0) + total * 0.03).toFixed(2)}</Text>
         </TouchableOpacity>
       </Animated.View>
 
