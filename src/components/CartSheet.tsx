@@ -11,6 +11,7 @@ import { useCartStore } from '../store/cartStore';
 import { getItemEmoji } from '../utils/foodEmoji';
 import { colors, font, radius, spacing } from '../theme';
 import { CartItem } from '../types';
+import { calcFees } from '../utils/pricing';
 
 const WINDOW_START_H = 10;
 const WINDOW_END_H   = 17;
@@ -77,17 +78,11 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
 
   const igstApplicable = false; // TODO: derive from vendor/customer state mismatch
 
-  // Tax breakdown — GST splits into CGST 2.5% + SGST 2.5% (intra-state)
   const cgst = gstRegistered ? total * 0.025 : 0;
   const sgst = gstRegistered ? total * 0.025 : 0;
-  const igst = igstApplicable ? total * 0.05 : 0;     // inter-state replaces CGST+SGST
+  const igst = igstApplicable ? total * 0.05 : 0;
   const totalTax = cgst + sgst + igst;
-
-  const platformFee    = total * 0.03;
-  const convenienceFee = total * 0.02;
-  const totalServiceFee = platformFee + convenienceFee;
-
-  const grandTotal = total + cgst + sgst + igst + totalServiceFee;
+  const { platformFee, convenienceFee, totalServiceFee, grandTotal } = calcFees(total, gstRegistered);
 
   const handlePlaceOrder = async () => {
     if (items.length === 0) return;

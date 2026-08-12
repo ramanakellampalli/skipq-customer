@@ -19,6 +19,7 @@ import ReorderCard from '../../components/ReorderCard';
 import Skeleton from '../../components/Skeleton';
 import { getRecentVendorOrders, resolveReorderItems } from '../../utils/reorder';
 import { getItemEmoji } from '../../utils/foodEmoji';
+import { calcFees } from '../../utils/pricing';
 
 const CART_BAR_HEIGHT = 80;
 
@@ -534,7 +535,7 @@ export default function VendorMenuScreen({ route, navigation }: any) {
             </View>
             <Text style={styles.cartBarLabel}>View Cart</Text>
           </View>
-          <Text style={styles.cartBarTotal}>₹{(total + (vendor.gstRegistered ? total * 0.05 : 0) + total * 0.05).toFixed(2)}</Text>
+          <Text style={styles.cartBarTotal}>₹{calcFees(total, vendor.gstRegistered).grandTotal.toFixed(2)}</Text>
         </TouchableOpacity>
       </Animated.View>
 
