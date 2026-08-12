@@ -83,8 +83,9 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
   const igst = igstApplicable ? total * 0.05 : 0;     // inter-state replaces CGST+SGST
   const totalTax = cgst + sgst + igst;
 
-  const platformFee = total * 0.03;
-  const totalServiceFee = platformFee;
+  const platformFee    = total * 0.03;
+  const convenienceFee = total * 0.02;
+  const totalServiceFee = platformFee + convenienceFee;
 
   const grandTotal = total + cgst + sgst + igst + totalServiceFee;
 
@@ -230,6 +231,10 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
                   <View style={styles.pricingRow}>
                     <Text style={styles.subLabel}>Platform fee (3%)</Text>
                     <Text style={styles.subValue}>₹{platformFee.toFixed(2)}</Text>
+                  </View>
+                  <View style={styles.pricingRow}>
+                    <Text style={styles.subLabel}>Convenience fee (2%)</Text>
+                    <Text style={styles.subValue}>₹{convenienceFee.toFixed(2)}</Text>
                   </View>
                 </View>
               )}

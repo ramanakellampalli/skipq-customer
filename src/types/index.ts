@@ -67,7 +67,7 @@ export interface Order {
   pricing: {
     subtotal: number;
     tax: { cgst: number; sgst: number; igst: number; totalTax: number };
-    fees: { platformFee: number; paymentTerminalFee: number; totalServiceFee: number };
+    fees: { platformFee: number; convenienceFee: number; totalServiceFee: number };
     totalAmount: number;
   };
   timeline: { createdAt: string; estimatedReadyAt: string; orderType: OrderType; scheduledPickupAt: string | null };
