@@ -16,6 +16,7 @@ import { api } from '../../api';
 import { useStudentStore } from '../../store/studentStore';
 import { ServiceRequestType } from '../../types';
 import { colors, font, radius, spacing } from '../../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TYPES: { value: ServiceRequestType; label: string }[] = [
   { value: 'PAYMENT_ISSUE',  label: 'Payment Issue' },
@@ -26,6 +27,7 @@ const TYPES: { value: ServiceRequestType; label: string }[] = [
 ];
 
 export default function NewHelpRequestScreen() {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const addServiceRequest = useStudentStore(state => state.addServiceRequest);
 
@@ -48,7 +50,7 @@ export default function NewHelpRequestScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backText}>‹ Back</Text>
         </TouchableOpacity>
@@ -122,7 +124,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingTop: 56,
     paddingBottom: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,

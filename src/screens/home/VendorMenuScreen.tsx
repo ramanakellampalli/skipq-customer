@@ -8,6 +8,7 @@ import Animated, {
   useSharedValue, useAnimatedStyle, withSpring,
 } from 'react-native-reanimated';
 import { ArrowLeft, Plus, Minus, ShoppingCart, X, Phone } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
 import { MenuItem, MenuVariant, Order } from '../../types';
@@ -209,6 +210,7 @@ function VariantPicker({ item, vendorId, vendorName, onClose }: VariantPickerPro
 type Section = { title: string; key: string; data: MenuItem[] };
 
 export default function VendorMenuScreen({ route, navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { vendor } = route.params;
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -420,9 +422,9 @@ export default function VendorMenuScreen({ route, navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
+      <StatusBar barStyle="dark-content" />
 
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <ArrowLeft size={22} color={colors.textPrimary} />
         </TouchableOpacity>
@@ -581,7 +583,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingTop: 52,
     paddingBottom: spacing.md,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,

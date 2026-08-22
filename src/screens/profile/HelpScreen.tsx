@@ -11,6 +11,7 @@ import { Plus } from 'lucide-react-native';
 import { useStudentStore } from '../../store/studentStore';
 import { ServiceRequest, ServiceRequestStatus, ServiceRequestType } from '../../types';
 import { colors, font, radius, spacing } from '../../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TYPE_LABELS: Record<ServiceRequestType, string> = {
   PAYMENT_ISSUE: 'Payment Issue',
@@ -61,12 +62,13 @@ function RequestCard({ sr }: { sr: ServiceRequest }) {
 }
 
 export default function HelpScreen() {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const serviceRequests = useStudentStore(state => state.serviceRequests);
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backText}>‹ Back</Text>
         </TouchableOpacity>
@@ -105,7 +107,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingTop: 56,
     paddingBottom: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
