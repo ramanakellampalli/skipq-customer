@@ -31,7 +31,6 @@ jobs:
         run: |
           echo "API_URL=${{ secrets.API_URL }}" >> .env
           echo "ABLY_API_KEY=${{ secrets.ABLY_API_KEY }}" >> .env
-          echo "GROWTHBOOK_CLIENT_KEY=${{ secrets.GROWTHBOOK_CLIENT_KEY }}" >> .env
 
       - name: Configure gradle.properties
         run: |
