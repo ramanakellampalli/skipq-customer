@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, StatusBar, Animated, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, Animated, TouchableOpacity, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import Ably from 'ably';
 import { CheckCircle2, Circle } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,6 +41,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
       : state.pastOrders.find(o => o.id === orderId) ?? null
   );
 
+  const isLiveOrder = useStudentStore(state => state.activeOrder?.id === orderId);
   const [cancelling, setCancelling] = useState(false);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const orderStatus = order?.state.orderStatus;
@@ -87,12 +88,13 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
   }, [orderStatus, pulseAnim]);
 
   useEffect(() => {
+    if (!isLiveOrder) return;
     const status = orderStatus;
     if (status === 'COMPLETED' || status === 'REJECTED' || status === 'CANCELLED') {
       const t = setTimeout(() => navigation.goBack(), 3000);
       return () => clearTimeout(t);
     }
-  }, [orderStatus, navigation]);
+  }, [orderStatus, navigation, isLiveOrder]);
 
   useEffect(() => {
     if (order) return;
@@ -130,138 +132,140 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
         )}
       </View>
 
-      {isCancelled ? (
-        <View style={styles.cancelledCard}>
-          <Text style={styles.rejectedIcon}>✕</Text>
-          <Text style={styles.cancelledTitle}>Order Cancelled</Text>
-          <Text style={styles.rejectedSub}>
-            Your order has been cancelled. A full refund has been initiated.
-          </Text>
-        </View>
-      ) : isRejected ? (
-        <View style={styles.rejectedCard}>
-          <Text style={styles.rejectedIcon}>✕</Text>
-          <Text style={styles.rejectedTitle}>Order Rejected</Text>
-          <Text style={styles.rejectedSub}>
-            The vendor couldn't accept your order. You will be refunded shortly.
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.tracker}>
-          {steps.map((step, idx) => {
-            const done = idx < currentIdx;
-            const active = idx === currentIdx;
-            const upcoming = idx > currentIdx;
-            const sublabel = step.status === 'SCHEDULED' && pickupTime
-              ? `Pickup scheduled for ${pickupTime}`
-              : step.sublabel;
-
-            return (
-              <View key={step.status} style={styles.stepRow}>
-                <View style={styles.stepLeft}>
-                  {done ? (
-                    <CheckCircle2 size={24} color={colors.success} />
-                  ) : active ? (
-                    <Animated.View style={[styles.activeDot, { transform: [{ scale: pulseAnim }] }]}>
-                      <View style={styles.activeDotInner} />
-                    </Animated.View>
-                  ) : (
-                    <Circle size={24} color={colors.border} />
-                  )}
-                  {idx < steps.length - 1 && (
-                    <View style={[styles.connector, done && styles.connectorDone]} />
-                  )}
-                </View>
-
-                <View style={styles.stepContent}>
-                  <Text style={[
-                    styles.stepLabel,
-                    done && styles.stepDone,
-                    active && styles.stepActive,
-                    upcoming && styles.stepUpcoming,
-                  ]}>
-                    {step.label}
-                  </Text>
-                  {(done || active) && (
-                    <Text style={styles.stepSublabel}>{sublabel}</Text>
-                  )}
-                </View>
-              </View>
-            );
-          })}
-        </View>
-      )}
-
-      <Text style={styles.cancelNote}>Orders can only be cancelled before the vendor accepts</Text>
-
-      {canCancel && (
-        <TouchableOpacity
-          style={[styles.cancelBtn, cancelling && styles.cancelBtnDisabled]}
-          onPress={handleCancel}
-          disabled={cancelling}
-          activeOpacity={0.8}>
-          {cancelling
-            ? <ActivityIndicator color={colors.error} />
-            : <Text style={styles.cancelBtnText}>Cancel Order</Text>}
-        </TouchableOpacity>
-      )}
-
-
-      {order?.state.orderStatus === 'READY' && (
-        <View style={styles.readyBanner}>
-          <Text style={styles.readyText}>🎉 Your order is ready! Head to the counter.</Text>
-        </View>
-      )}
-
-      {order && (
-        <View style={styles.receiptCard}>
-          <Text style={styles.receiptTitle}>Order Summary</Text>
-          <View style={styles.receiptRow}>
-            <Text style={styles.receiptLabel}>Subtotal</Text>
-            <Text style={styles.receiptValue}>₹{order.pricing.subtotal.toFixed(2)}</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {isCancelled ? (
+          <View style={styles.cancelledCard}>
+            <Text style={styles.rejectedIcon}>✕</Text>
+            <Text style={styles.cancelledTitle}>Order Cancelled</Text>
+            <Text style={styles.rejectedSub}>
+              Your order has been cancelled. A full refund has been initiated.
+            </Text>
           </View>
+        ) : isRejected ? (
+          <View style={styles.rejectedCard}>
+            <Text style={styles.rejectedIcon}>✕</Text>
+            <Text style={styles.rejectedTitle}>Order Rejected</Text>
+            <Text style={styles.rejectedSub}>
+              The vendor couldn't accept your order. You will be refunded shortly.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.tracker}>
+            {steps.map((step, idx) => {
+              const done = idx < currentIdx;
+              const active = idx === currentIdx;
+              const upcoming = idx > currentIdx;
+              const sublabel = step.status === 'SCHEDULED' && pickupTime
+                ? `Pickup scheduled for ${pickupTime}`
+                : step.sublabel;
 
-          {order.pricing.tax.totalTax > 0 && (
-            <>
-              <View style={styles.receiptRow}>
-                <Text style={styles.receiptLabel}>CGST (2.5%)</Text>
-                <Text style={styles.receiptValue}>₹{order.pricing.tax.cgst.toFixed(2)}</Text>
-              </View>
-              <View style={styles.receiptRow}>
-                <Text style={styles.receiptLabel}>SGST (2.5%)</Text>
-                <Text style={styles.receiptValue}>₹{order.pricing.tax.sgst.toFixed(2)}</Text>
-              </View>
-              {order.pricing.tax.igst > 0 && (
+              return (
+                <View key={step.status} style={styles.stepRow}>
+                  <View style={styles.stepLeft}>
+                    {done ? (
+                      <CheckCircle2 size={24} color={colors.success} />
+                    ) : active ? (
+                      <Animated.View style={[styles.activeDot, { transform: [{ scale: pulseAnim }] }]}>
+                        <View style={styles.activeDotInner} />
+                      </Animated.View>
+                    ) : (
+                      <Circle size={24} color={colors.border} />
+                    )}
+                    {idx < steps.length - 1 && (
+                      <View style={[styles.connector, done && styles.connectorDone]} />
+                    )}
+                  </View>
+
+                  <View style={styles.stepContent}>
+                    <Text style={[
+                      styles.stepLabel,
+                      done && styles.stepDone,
+                      active && styles.stepActive,
+                      upcoming && styles.stepUpcoming,
+                    ]}>
+                      {step.label}
+                    </Text>
+                    {(done || active) && (
+                      <Text style={styles.stepSublabel}>{sublabel}</Text>
+                    )}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        <Text style={styles.cancelNote}>Orders can only be cancelled before the vendor accepts</Text>
+
+        {canCancel && (
+          <TouchableOpacity
+            style={[styles.cancelBtn, cancelling && styles.cancelBtnDisabled]}
+            onPress={handleCancel}
+            disabled={cancelling}
+            activeOpacity={0.8}>
+            {cancelling
+              ? <ActivityIndicator color={colors.error} />
+              : <Text style={styles.cancelBtnText}>Cancel Order</Text>}
+          </TouchableOpacity>
+        )}
+
+        {order?.state.orderStatus === 'READY' && (
+          <View style={styles.readyBanner}>
+            <Text style={styles.readyText}>🎉 Your order is ready! Head to the counter.</Text>
+          </View>
+        )}
+
+        {order && (
+          <View style={styles.receiptCard}>
+            <Text style={styles.receiptTitle}>Order Summary</Text>
+            <View style={styles.receiptRow}>
+              <Text style={styles.receiptLabel}>Subtotal</Text>
+              <Text style={styles.receiptValue}>₹{order.pricing.subtotal.toFixed(2)}</Text>
+            </View>
+
+            {order.pricing.tax.totalTax > 0 && (
+              <>
                 <View style={styles.receiptRow}>
-                  <Text style={styles.receiptLabel}>IGST (5%)</Text>
-                  <Text style={styles.receiptValue}>₹{order.pricing.tax.igst.toFixed(2)}</Text>
+                  <Text style={styles.receiptLabel}>CGST (2.5%)</Text>
+                  <Text style={styles.receiptValue}>₹{order.pricing.tax.cgst.toFixed(2)}</Text>
                 </View>
-              )}
-            </>
-          )}
+                <View style={styles.receiptRow}>
+                  <Text style={styles.receiptLabel}>SGST (2.5%)</Text>
+                  <Text style={styles.receiptValue}>₹{order.pricing.tax.sgst.toFixed(2)}</Text>
+                </View>
+                {order.pricing.tax.igst > 0 && (
+                  <View style={styles.receiptRow}>
+                    <Text style={styles.receiptLabel}>IGST (5%)</Text>
+                    <Text style={styles.receiptValue}>₹{order.pricing.tax.igst.toFixed(2)}</Text>
+                  </View>
+                )}
+              </>
+            )}
 
-          <View style={styles.receiptRow}>
-            <Text style={styles.receiptLabel}>Platform fee (3%)</Text>
-            <Text style={styles.receiptValue}>₹{order.pricing.fees.platformFee.toFixed(2)}</Text>
-          </View>
-          <View style={styles.receiptRow}>
-            <Text style={styles.receiptLabel}>Convenience fee (2%)</Text>
-            <Text style={styles.receiptValue}>₹{order.pricing.fees.convenienceFee.toFixed(2)}</Text>
-          </View>
+            <View style={styles.receiptRow}>
+              <Text style={styles.receiptLabel}>Platform fee (3%)</Text>
+              <Text style={styles.receiptValue}>₹{order.pricing.fees.platformFee.toFixed(2)}</Text>
+            </View>
+            <View style={styles.receiptRow}>
+              <Text style={styles.receiptLabel}>Convenience fee (2%)</Text>
+              <Text style={styles.receiptValue}>₹{order.pricing.fees.convenienceFee.toFixed(2)}</Text>
+            </View>
 
-          <View style={styles.receiptDivider} />
-          <View style={styles.receiptRow}>
-            <Text style={styles.receiptTotal}>Total</Text>
-            <Text style={styles.receiptTotal}>₹{order.pricing.totalAmount.toFixed(2)}</Text>
+            <View style={styles.receiptDivider} />
+            <View style={styles.receiptRow}>
+              <Text style={styles.receiptTotal}>Total</Text>
+              <Text style={styles.receiptTotal}>₹{order.pricing.totalAmount.toFixed(2)}</Text>
+            </View>
           </View>
-        </View>
-      )}
+        )}
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  scrollContent: { paddingBottom: spacing.xl },
   header: {
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.lg,
