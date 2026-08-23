@@ -133,6 +133,7 @@ function MainNavigator() {
 export default function Navigation() {
   const { token, isLoading, loadFromStorage } = useAuthStore();
   const setSync = useStudentStore(state => state.setSync);
+  const setSyncFailed = useStudentStore(state => state.setSyncFailed);
 
   usePushNotifications(!!token);
 
@@ -142,9 +143,9 @@ export default function Navigation() {
 
   useEffect(() => {
     if (token) {
-      api.student.sync().then(res => setSync(res.data)).catch(() => {});
+      api.student.sync().then(res => setSync(res.data)).catch(() => setSyncFailed());
     }
-  }, [token, setSync]);
+  }, [token, setSync, setSyncFailed]);
 
   if (isLoading) return null;
 

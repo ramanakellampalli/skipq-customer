@@ -72,6 +72,7 @@ export default function OrdersScreen({ navigation }: any) {
   const activeOrder = useStudentStore(state => state.activeOrder);
   const pastOrders = useStudentStore(state => state.pastOrders);
   const isSynced = useStudentStore(state => state.isSynced);
+  const syncFailed = useStudentStore(state => state.syncFailed);
   const setSync = useStudentStore(state => state.setSync);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState<Filter>('all');
@@ -211,7 +212,7 @@ export default function OrdersScreen({ navigation }: any) {
 
             {!activeOrder && !hasPastOrders && (
               <View style={styles.empty}>
-                {!isSynced ? (
+                {!isSynced && !syncFailed ? (
                   <ActivityIndicator size="large" color={colors.primary} />
                 ) : (
                   <>
