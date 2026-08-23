@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, Minus, Plus, ShoppingBag, ChevronDown, ChevronUp, Clock } from 'lucide-react-native';
+import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import RazorpayCheckout from 'react-native-razorpay';
 import { api } from '../api';
 import { useCartStore } from '../store/cartStore';
@@ -73,8 +74,9 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
   const [selectedSlot, setSelectedSlot] = useState<Date | null>(null);
   const [slotPickerVisible, setSlotPickerVisible] = useState(false);
 
+  const scheduleEnabled = useFeatureIsOn('customer-enable-schedule-orders');
   const slots = generateSlots();
-  const schedulingAvailable = canScheduleToday();
+  const schedulingAvailable = scheduleEnabled && canScheduleToday();
 
   const igstApplicable = false; // TODO: derive from vendor/customer state mismatch
 
@@ -242,27 +244,30 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
                 <Text style={styles.totalValue}>₹{grandTotal.toFixed(2)}</Text>
               </View>
 
-              {/* Order type toggle */}
-              <View style={styles.toggleRow}>
-                <TouchableOpacity
-                  style={[styles.toggleBtn, !isScheduled && styles.toggleBtnActive]}
-                  onPress={() => setIsScheduled(false)}
-                  activeOpacity={0.8}>
-                  <Text style={[styles.toggleBtnText, !isScheduled && styles.toggleBtnTextActive]}>Order Now</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.toggleBtn, isScheduled && styles.toggleBtnActive, !schedulingAvailable && styles.toggleBtnDisabled]}
-                  onPress={() => schedulingAvailable && setIsScheduled(true)}
-                  activeOpacity={schedulingAvailable ? 0.8 : 1}>
-                  <Clock size={13} color={isScheduled ? colors.white : colors.textSecondary} />
-                  <Text style={[styles.toggleBtnText, isScheduled && styles.toggleBtnTextActive, !schedulingAvailable && styles.toggleBtnTextDisabled]}>
-                    Schedule
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {!schedulingAvailable && (
-                <Text style={styles.scheduleNote}>Scheduling closes at 5 PM</Text>
+              {/* Order type toggle — only shown when feature flag is on */}
+              {scheduleEnabled && (
+                <>
+                  <View style={styles.toggleRow}>
+                    <TouchableOpacity
+                      style={[styles.toggleBtn, !isScheduled && styles.toggleBtnActive]}
+                      onPress={() => setIsScheduled(false)}
+                      activeOpacity={0.8}>
+                      <Text style={[styles.toggleBtnText, !isScheduled && styles.toggleBtnTextActive]}>Order Now</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.toggleBtn, isScheduled && styles.toggleBtnActive, !schedulingAvailable && styles.toggleBtnDisabled]}
+                      onPress={() => schedulingAvailable && setIsScheduled(true)}
+                      activeOpacity={schedulingAvailable ? 0.8 : 1}>
+                      <Clock size={13} color={isScheduled ? colors.white : colors.textSecondary} />
+                      <Text style={[styles.toggleBtnText, isScheduled && styles.toggleBtnTextActive, !schedulingAvailable && styles.toggleBtnTextDisabled]}>
+                        Schedule
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  {!schedulingAvailable && (
+                    <Text style={styles.scheduleNote}>Scheduling closes at 5 PM</Text>
+                  )}
+                </>
               )}
 
               {isScheduled && schedulingAvailable && (
