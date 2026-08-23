@@ -18,6 +18,8 @@ interface StudentState {
   vendorImages: Record<string, string[]>;
   serviceRequests: ServiceRequest[];
   isSynced: boolean;
+  syncFailed: boolean;
+  setSyncFailed: () => void;
   setSync: (data: {
     profile: StudentProfile;
     vendors: Vendor[];
@@ -40,9 +42,12 @@ export const useStudentStore = create<StudentState>(set => ({
   vendorImages: {},
   serviceRequests: [],
   isSynced: false,
+  syncFailed: false,
 
   setSync: ({ profile, vendors, activeOrder, pastOrders, vendorImages, serviceRequests }) =>
-    set({ profile, vendors, activeOrder, pastOrders, vendorImages, serviceRequests: serviceRequests ?? [], isSynced: true }),
+    set({ profile, vendors, activeOrder, pastOrders, vendorImages, serviceRequests: serviceRequests ?? [], isSynced: true, syncFailed: false }),
+
+  setSyncFailed: () => set({ syncFailed: true }),
 
   addServiceRequest: (sr) =>
     set(state => ({ serviceRequests: [sr, ...state.serviceRequests] })),
@@ -68,5 +73,5 @@ export const useStudentStore = create<StudentState>(set => ({
     })),
 
   reset: () =>
-    set({ profile: null, vendors: [], activeOrder: null, pastOrders: [], vendorImages: {}, serviceRequests: [], isSynced: false }),
+    set({ profile: null, vendors: [], activeOrder: null, pastOrders: [], vendorImages: {}, serviceRequests: [], isSynced: false, syncFailed: false }),
 }));

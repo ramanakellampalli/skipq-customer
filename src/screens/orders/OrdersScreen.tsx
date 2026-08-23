@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  StatusBar, RefreshControl,
+  StatusBar, RefreshControl, ActivityIndicator,
 } from 'react-native';
 import { ClipboardList, ChevronRight } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -71,6 +71,8 @@ export default function OrdersScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const activeOrder = useStudentStore(state => state.activeOrder);
   const pastOrders = useStudentStore(state => state.pastOrders);
+  const isSynced = useStudentStore(state => state.isSynced);
+  const syncFailed = useStudentStore(state => state.syncFailed);
   const setSync = useStudentStore(state => state.setSync);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState<Filter>('all');
@@ -210,9 +212,15 @@ export default function OrdersScreen({ navigation }: any) {
 
             {!activeOrder && !hasPastOrders && (
               <View style={styles.empty}>
-                <ClipboardList size={56} color={colors.border} />
-                <Text style={styles.emptyTitle}>No orders yet</Text>
-                <Text style={styles.emptySubtitle}>Find a vendor and place your first order</Text>
+                {!isSynced && !syncFailed ? (
+                  <ActivityIndicator size="large" color={colors.primary} />
+                ) : (
+                  <View style={styles.emptyContent}>
+                    <ClipboardList size={56} color={colors.border} />
+                    <Text style={styles.emptyTitle}>No orders yet</Text>
+                    <Text style={styles.emptySubtitle}>Find a vendor and place your first order</Text>
+                  </View>
+                )}
               </View>
             )}
           </View>
@@ -312,7 +320,8 @@ const styles = StyleSheet.create({
   loadMoreText: { fontFamily: font.semiBold, fontSize: 14, color: colors.primary },
   emptyFiltered: { paddingVertical: spacing.lg, alignItems: 'center' },
   emptyFilteredText: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, gap: spacing.sm },
-  emptyTitle: { fontFamily: font.semiBold, fontSize: 18, color: colors.textPrimary },
-  emptySubtitle: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
+  empty: { paddingTop: 100 },
+  emptyContent: { alignItems: 'center', paddingHorizontal: spacing.xl },
+  emptyTitle: { fontFamily: font.semiBold, fontSize: 18, color: colors.textPrimary, marginTop: 16 },
+  emptySubtitle: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary, textAlign: 'center', marginTop: 8 },
 });

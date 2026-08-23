@@ -104,7 +104,7 @@ export default function ProfileScreen() {
         <Text style={styles.name}>{profile?.name ?? '—'}</Text>
       </View>
 
-      {/* Email + Campus */}
+      {/* Email + Phone + Campus */}
       <View style={styles.section}>
         <View style={styles.row}>
           <View style={styles.iconWrap}>
@@ -183,15 +183,16 @@ export default function ProfileScreen() {
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
-        <LogOut size={18} color={colors.error} />
-        <Text style={styles.logoutText}>Log Out</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount} activeOpacity={0.8} disabled={isDeleting}>
-        <Trash2 size={16} color={colors.textSecondary} />
-        <Text style={styles.deleteText}>{isDeleting ? 'Deleting…' : 'Delete Account'}</Text>
-      </TouchableOpacity>
+      <View style={styles.actionRow}>
+        <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={handleDeleteAccount} activeOpacity={0.8} disabled={isDeleting}>
+          <Trash2 size={15} color={colors.textSecondary} />
+          <Text style={styles.deleteText}>{isDeleting ? 'Deleting…' : 'Delete Account'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.actionBtn, styles.logoutBtn]} onPress={handleLogout} activeOpacity={0.8}>
+          <LogOut size={15} color={colors.error} />
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -208,6 +209,7 @@ const styles = StyleSheet.create({
   },
   avatarText: { fontFamily: font.bold, fontSize: 28, color: colors.white },
   name: { fontFamily: font.bold, fontSize: 20, color: colors.textPrimary },
+
   section: {
     marginHorizontal: spacing.md,
     backgroundColor: colors.surface,
@@ -233,27 +235,24 @@ const styles = StyleSheet.create({
   rowLabel: { fontFamily: font.regular, fontSize: 12, color: colors.textSecondary, marginBottom: 2 },
   rowValue: { fontFamily: font.semiBold, fontSize: 15, color: colors.textPrimary },
   divider: { height: 1, backgroundColor: colors.border, marginLeft: spacing.md + 32 + spacing.md },
-  logoutBtn: {
+
+  actionRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
     marginHorizontal: spacing.md,
     marginTop: spacing.md,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.error,
-    padding: spacing.md,
-    justifyContent: 'center',
+    gap: spacing.sm,
   },
-  logoutText: { fontFamily: font.semiBold, fontSize: 15, color: colors.error },
-  deleteBtn: {
+  actionBtn: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    marginHorizontal: spacing.md,
-    marginTop: spacing.sm,
-    padding: spacing.md,
     justifyContent: 'center',
+    gap: spacing.xs,
+    borderRadius: radius.lg,
+    paddingVertical: 12,
   },
-  deleteText: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
+  logoutBtn: { borderWidth: 1, borderColor: colors.error },
+  logoutText: { fontFamily: font.semiBold, fontSize: 14, color: colors.error },
+  deleteBtn: { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
+  deleteText: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary },
 });

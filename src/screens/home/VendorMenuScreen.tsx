@@ -34,6 +34,7 @@ interface VariantPickerProps {
 }
 
 function VariantPicker({ item, vendorId, vendorName, onClose }: VariantPickerProps) {
+  const insets = useSafeAreaInsets();
   const addItem = useCartStore(s => s.addItem);
   const cartItems = useCartStore(s => s.items);
   const incrementItem = useCartStore(s => s.incrementItem);
@@ -124,7 +125,7 @@ function VariantPicker({ item, vendorId, vendorName, onClose }: VariantPickerPro
   return (
     <Modal visible={!!item} transparent animationType="slide">
       <View style={pickerStyles.overlay}>
-        <View style={pickerStyles.sheet}>
+        <View style={[pickerStyles.sheet, { paddingBottom: insets.bottom }]}>
           <View style={pickerStyles.header}>
             <View style={pickerStyles.headerInfo}>
               <View style={pickerStyles.titleRow}>
@@ -142,8 +143,8 @@ function VariantPicker({ item, vendorId, vendorName, onClose }: VariantPickerPro
           </View>
 
           <ScrollView>
-            {/* Base item row — always first */}
-            {(() => {
+            {/* Base item row — only when item has its own base price */}
+            {item.price > 0 && (() => {
               const baseQty = getBaseQty();
               return (
                 <View key="__base__" style={pickerStyles.variantRow}>
@@ -372,7 +373,13 @@ export default function VendorMenuScreen({ route, navigation }: any) {
     }
   }, [vendor, items, addItem, incrementItem]);
 
-  const priceDisplay = (item: MenuItem) => `₹${item.price.toFixed(2)}`;
+  const priceDisplay = (item: MenuItem) => {
+    if (item.variants.length > 0) {
+      const prices = item.variants.filter(v => v.isAvailable).map(v => v.price);
+      if (prices.length > 0) return `from ₹${Math.min(...prices).toFixed(2)}`;
+    }
+    return `₹${item.price.toFixed(2)}`;
+  };
 
   const renderMenuItem = (item: MenuItem) => {
     const unavailable = !item.isAvailable;

@@ -12,12 +12,6 @@ import { useStudentStore } from '../../store/studentStore';
 import { useCartStore } from '../../store/cartStore';
 import Skeleton from '../../components/Skeleton';
 
-type Filter = 'open' | 'quick';
-const FILTERS: { key: Filter; label: string }[] = [
-  { key: 'open',  label: 'Open Now' },
-  { key: 'quick', label: 'Quick ≤ 15 min' },
-];
-
 const BANNER_HEIGHT = 160;
 
 export default function HomeScreen({ navigation }: any) {
@@ -30,9 +24,8 @@ export default function HomeScreen({ navigation }: any) {
   const cartVendorId  = useCartStore(state => state.vendorId);
   const cartCount     = useCartStore(state => state.itemCount());
 
-  const [isRefreshing,  setIsRefreshing]  = useState(false);
-  const [search,        setSearch]        = useState('');
-  const [activeFilters, setActiveFilters] = useState<Set<Filter>>(new Set());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [search,       setSearch]       = useState('');
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -44,24 +37,11 @@ export default function HomeScreen({ navigation }: any) {
     }
   }, [setSync]);
 
-  const toggleFilter = (key: Filter) => {
-    setActiveFilters(prev => {
-      const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
-      return next;
-    });
-  };
-
   const filtered = useMemo(() => {
-    let list = vendors;
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      list = list.filter(v => v.name.toLowerCase().includes(q));
-    }
-    if (activeFilters.has('open'))  list = list.filter(v => v.isOpen);
-    if (activeFilters.has('quick')) list = list.filter(v => v.prepTime <= 15);
-    return list;
-  }, [vendors, search, activeFilters]);
+    if (!search.trim()) return vendors;
+    const q = search.trim().toLowerCase();
+    return vendors.filter(v => v.name.toLowerCase().includes(q));
+  }, [vendors, search]);
 
   const openVendors   = filtered.filter(v => v.isOpen);
   const closedVendors = filtered.filter(v => !v.isOpen);
@@ -120,17 +100,18 @@ export default function HomeScreen({ navigation }: any) {
 
         {/* Info row */}
         <View style={styles.cardBody}>
-          <Text style={styles.vendorName} numberOfLines={1}>{item.name}</Text>
-          <View style={styles.metaRow}>
-            <Clock size={12} color={colors.textSecondary} />
-            <Text style={styles.metaText}>~{item.prepTime} min</Text>
+          <View style={styles.cardBodyLeft}>
+            <Text style={styles.vendorName} numberOfLines={1}>{item.name}</Text>
             {!item.campusName && item.city && (
-              <>
-                <Text style={styles.metaDot}>·</Text>
+              <View style={styles.metaRow}>
                 <MapPin size={12} color={colors.textSecondary} />
                 <Text style={styles.metaText}>{item.city}</Text>
-              </>
+              </View>
             )}
+          </View>
+          <View style={styles.prepBadge}>
+            <Clock size={12} color={colors.primary} />
+            <Text style={styles.prepBadgeText}>~{item.prepTime} min</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -168,7 +149,7 @@ export default function HomeScreen({ navigation }: any) {
           style={styles.searchInput}
           value={search}
           onChangeText={setSearch}
-          placeholder="Search vendors…"
+          placeholder="Search restaurants…"
           placeholderTextColor={colors.textSecondary}
           autoCorrect={false}
           autoCapitalize="none"
@@ -179,22 +160,6 @@ export default function HomeScreen({ navigation }: any) {
             <X size={15} color={colors.textSecondary} />
           </TouchableOpacity>
         )}
-      </View>
-
-      {/* Filter chips */}
-      <View style={styles.chipRow}>
-        {FILTERS.map(({ key, label }) => {
-          const active = activeFilters.has(key);
-          return (
-            <TouchableOpacity
-              key={key}
-              style={[styles.chip, active && styles.chipActive]}
-              onPress={() => toggleFilter(key)}
-              activeOpacity={0.8}>
-              <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
-            </TouchableOpacity>
-          );
-        })}
       </View>
 
       {/* Count label */}
@@ -248,7 +213,7 @@ export default function HomeScreen({ navigation }: any) {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyTitle}>
-              {vendors.length === 0 ? 'No vendors yet' : 'No vendors found'}
+              {vendors.length === 0 ? 'No restaurants yet' : 'No restaurants found'}
             </Text>
             <Text style={styles.emptySub}>
               {vendors.length === 0
@@ -308,24 +273,6 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     padding: 0,
   },
-
-  chipRow: {
-    flexDirection: 'row',
-    paddingHorizontal: spacing.md,
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText: { fontFamily: font.semiBold, fontSize: 13, color: colors.textSecondary },
-  chipTextActive: { color: colors.white },
 
   countRow: { paddingHorizontal: spacing.md, paddingBottom: spacing.sm },
   countText: {
@@ -408,11 +355,21 @@ const styles = StyleSheet.create({
     borderColor: colors.surface,
     backgroundColor: colors.surface,
   },
-  cardBody: { paddingHorizontal: spacing.md, paddingTop: spacing.sm + 20, paddingBottom: spacing.md, gap: 4 },
+  cardBody: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingTop: 22, paddingBottom: 10, gap: spacing.sm },
+  cardBodyLeft: { flex: 1, gap: 2 },
   vendorName: { fontFamily: font.bold, fontSize: 17, color: colors.textPrimary },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   metaText: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
-  metaDot: { fontFamily: font.regular, fontSize: 13, color: colors.textSecondary },
+  prepBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.primaryGlow,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.full,
+  },
+  prepBadgeText: { fontFamily: font.semiBold, fontSize: 12, color: colors.primary },
 
   divider: {
     flexDirection: 'row',
