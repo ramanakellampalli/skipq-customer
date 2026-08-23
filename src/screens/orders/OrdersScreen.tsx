@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  StatusBar, RefreshControl,
+  StatusBar, RefreshControl, ActivityIndicator,
 } from 'react-native';
 import { ClipboardList, ChevronRight } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -71,6 +71,7 @@ export default function OrdersScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const activeOrder = useStudentStore(state => state.activeOrder);
   const pastOrders = useStudentStore(state => state.pastOrders);
+  const isSynced = useStudentStore(state => state.isSynced);
   const setSync = useStudentStore(state => state.setSync);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState<Filter>('all');
@@ -210,9 +211,15 @@ export default function OrdersScreen({ navigation }: any) {
 
             {!activeOrder && !hasPastOrders && (
               <View style={styles.empty}>
-                <ClipboardList size={56} color={colors.border} />
-                <Text style={styles.emptyTitle}>No orders yet</Text>
-                <Text style={styles.emptySubtitle}>Find a vendor and place your first order</Text>
+                {!isSynced ? (
+                  <ActivityIndicator size="large" color={colors.primary} />
+                ) : (
+                  <>
+                    <ClipboardList size={56} color={colors.border} />
+                    <Text style={styles.emptyTitle}>No orders yet</Text>
+                    <Text style={styles.emptySubtitle}>Find a vendor and place your first order</Text>
+                  </>
+                )}
               </View>
             )}
           </View>
