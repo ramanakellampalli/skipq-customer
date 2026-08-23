@@ -7,8 +7,10 @@ import PasswordInput from '../../components/PasswordInput';
 import LoadingDots from '../../components/LoadingDots';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ResetPasswordScreen({ route, navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { email } = route.params as { email: string };
   const [otp, setOtp] = useState('');
   const [password, setPassword] = useState('');
@@ -45,8 +47,10 @@ export default function ResetPasswordScreen({ route, navigation }: any) {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
-      <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
+      <StatusBar barStyle="dark-content" />
+      <ScrollView
+        contentContainerStyle={[styles.inner, { paddingTop: insets.top + spacing.lg }]}
+        keyboardShouldPersistTaps="handled">
         <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
@@ -105,7 +109,7 @@ export default function ResetPasswordScreen({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  inner: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingTop: 56, paddingBottom: spacing.xl },
+  inner: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
   back: { marginBottom: spacing.xl },
   backText: { fontFamily: font.medium, fontSize: 15, color: colors.textSecondary },
   header: { marginBottom: spacing.xl },

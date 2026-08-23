@@ -6,11 +6,13 @@ import {
 import { api } from '../../api';
 import { useAuthStore } from '../../store/authStore';
 import { colors, font, radius, spacing } from '../../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN = 60;
 
 export default function OtpScreen({ route, navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { email, name, password, phone } = route.params as { email: string; name: string; password: string; phone: string };
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''));
   const [loading, setLoading] = useState(false);
@@ -87,8 +89,8 @@ export default function OtpScreen({ route, navigation }: any) {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
-      <View style={styles.inner}>
+      <StatusBar barStyle="dark-content" />
+      <View style={[styles.inner, { paddingTop: insets.top + spacing.lg }]}>
         <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
@@ -148,7 +150,7 @@ export default function OtpScreen({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  inner: { flex: 1, paddingHorizontal: spacing.lg, paddingTop: 56, paddingBottom: spacing.xl },
+  inner: { flex: 1, paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
   back: { marginBottom: spacing.xl },
   backText: { fontFamily: font.medium, fontSize: 15, color: colors.textSecondary },
   header: { marginBottom: 40 },

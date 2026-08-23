@@ -9,7 +9,7 @@ export default function LandingScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" />
 
       <View style={styles.hero}>
         <View style={styles.logoRow}>

@@ -4,6 +4,7 @@ import {
   StatusBar, RefreshControl,
 } from 'react-native';
 import { ClipboardList, ChevronRight } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
 import { Order } from '../../types';
@@ -67,6 +68,7 @@ function applyFilter(orders: Order[], filter: Filter): Order[] {
 }
 
 export default function OrdersScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const activeOrder = useStudentStore(state => state.activeOrder);
   const pastOrders = useStudentStore(state => state.pastOrders);
   const setSync = useStudentStore(state => state.setSync);
@@ -120,7 +122,7 @@ export default function OrdersScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" />
 
       <FlatList
         data={[]}
@@ -133,7 +135,7 @@ export default function OrdersScreen({ navigation }: any) {
         }
         ListHeaderComponent={
           <View>
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
               <Text style={styles.title}>My Orders</Text>
             </View>
 
@@ -224,7 +226,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   list: { paddingBottom: spacing.xl },
   emptyContainer: { flex: 1 },
-  header: { paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md },
+  header: { paddingHorizontal: spacing.md, paddingBottom: spacing.md },
   title: { fontFamily: font.bold, fontSize: 22, color: colors.textPrimary },
 
   activeCard: {

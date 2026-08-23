@@ -10,8 +10,10 @@ import { api } from '../../api';
 import { hasSavedCredentials } from '../../utils/biometrics';
 import { requestNotificationPermission, getNotificationStatus } from '../../hooks/usePushNotifications';
 import { colors, font, radius, spacing } from '../../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { logout } = useAuthStore();
   const { profile, reset } = useStudentStore();
@@ -88,9 +90,9 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" />
 
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
         <Text style={styles.title}>Profile</Text>
       </View>
 
@@ -196,7 +198,7 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: { paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md },
+  header: { paddingHorizontal: spacing.md, paddingBottom: spacing.md },
   title: { fontFamily: font.bold, fontSize: 22, color: colors.textPrimary },
   avatarSection: { alignItems: 'center', paddingVertical: spacing.xl, gap: spacing.sm },
   avatar: {

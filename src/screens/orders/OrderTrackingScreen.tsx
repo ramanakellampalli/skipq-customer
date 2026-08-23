@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, StatusBar, Animated, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import Ably from 'ably';
 import { CheckCircle2, Circle } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Config from 'react-native-config';
 import { api } from '../../api';
 import { useStudentStore } from '../../store/studentStore';
@@ -31,6 +32,7 @@ const IMMEDIATE_ORDER: OrderStatus[] = ['AWAITING_PAYMENT', 'PENDING', 'ACCEPTED
 const SCHEDULED_ORDER: OrderStatus[] = ['AWAITING_PAYMENT', 'SCHEDULED', 'PENDING', 'ACCEPTED', 'PREPARING', 'READY', 'COMPLETED'];
 
 export default function OrderTrackingScreen({ route, navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { orderId } = route.params;
   const setActiveOrder = useStudentStore(state => state.setActiveOrder);
   const order = useStudentStore(state =>
@@ -119,9 +121,9 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" />
 
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
         <Text style={styles.title}>Order #{orderId.slice(0, 8).toUpperCase()}</Text>
         {order && (
           <Text style={styles.vendor}>{order.vendor.name}</Text>
@@ -262,7 +264,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: {
     paddingHorizontal: spacing.md,
-    paddingTop: 56,
     paddingBottom: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,

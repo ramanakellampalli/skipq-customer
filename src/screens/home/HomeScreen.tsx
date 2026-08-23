@@ -4,6 +4,7 @@ import {
   StatusBar, RefreshControl, TextInput, Image,
 } from 'react-native';
 import { MapPin, Clock, Search, ShoppingCart, X } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
 import { Vendor } from '../../types';
@@ -20,6 +21,7 @@ const FILTERS: { key: Filter; label: string }[] = [
 const BANNER_HEIGHT = 160;
 
 export default function HomeScreen({ navigation }: any) {
+  const insets        = useSafeAreaInsets();
   const vendors       = useStudentStore(state => state.vendors);
   const profile       = useStudentStore(state => state.profile);
   const setSync       = useStudentStore(state => state.setSync);
@@ -146,7 +148,7 @@ export default function HomeScreen({ navigation }: any) {
   const ListHeader = (
     <View>
       {/* Greeting */}
-      <View style={styles.greetingWrap}>
+      <View style={[styles.greetingWrap, { paddingTop: insets.top + spacing.lg }]}>
         {profile?.campusName && (
           <View style={styles.locationRow}>
             <MapPin size={13} color={colors.primary} />
@@ -209,7 +211,7 @@ export default function HomeScreen({ navigation }: any) {
   if (!isSynced) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+        <StatusBar barStyle="dark-content" />
         {ListHeader}
         {[1, 2, 3].map(k => <SkeletonCard key={k} />)}
       </View>
@@ -218,7 +220,7 @@ export default function HomeScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" />
       <FlatList
         data={listData}
         keyExtractor={item => item.id}
@@ -278,7 +280,6 @@ const styles = StyleSheet.create({
 
   greetingWrap: {
     paddingHorizontal: spacing.md,
-    paddingTop: 56,
     paddingBottom: spacing.md,
     gap: 4,
   },
