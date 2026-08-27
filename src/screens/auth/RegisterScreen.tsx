@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, Alert, ScrollView, StatusBar,
 } from 'react-native';
+import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,16 +12,22 @@ import LoadingDots from '../../components/LoadingDots';
 
 export default function RegisterScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const eduOnly = useFeatureIsOn('customer-edu-only-signup');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !phone.trim() || !password) {
       Alert.alert('Missing fields', 'Please fill in all fields');
+      return;
+    }
+    if (eduOnly && !email.trim().toLowerCase().endsWith('.edu')) {
+      setEmailError('Only college .edu email addresses are accepted');
       return;
     }
     if (!/^\d{10}$/.test(phone.trim())) {
@@ -81,15 +88,16 @@ export default function RegisterScreen({ navigation }: any) {
           <View style={styles.field}>
             <Text style={styles.label}>College Email</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, emailError ? styles.inputError : null]}
               value={email}
-              onChangeText={setEmail}
+              onChangeText={t => { setEmail(t); setEmailError(''); }}
               placeholder="you@college.edu"
               placeholderTextColor={colors.textSecondary}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
             />
+            {!!emailError && <Text style={styles.fieldError}>{emailError}</Text>}
           </View>
 
           <View style={styles.field}>
@@ -181,6 +189,8 @@ const styles = StyleSheet.create({
   btnText: { fontFamily: font.bold, fontSize: 16, color: colors.white },
   switchText: { fontFamily: font.regular, fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
   switchLink: { fontFamily: font.semiBold, color: colors.primary },
+  inputError: { borderColor: colors.error },
+  fieldError: { fontFamily: font.regular, fontSize: 12, color: colors.error, marginTop: 2 },
   phoneRow: {
     flexDirection: 'row',
     borderWidth: 1,
