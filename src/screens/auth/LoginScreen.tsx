@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Fingerprint } from 'lucide-react-native';
 import { useFeatureIsOn } from '@growthbook/growthbook-react';
+import { isEduEmail } from '../../utils/auth';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PasswordInput from '../../components/PasswordInput';
 import LoadingDots from '../../components/LoadingDots';
@@ -61,7 +62,7 @@ export default function LoginScreen({ navigation }: any) {
       Alert.alert('Missing fields', 'Please enter your email and password');
       return;
     }
-    if (eduOnly && !email.toLowerCase().includes('.edu')) {
+    if (eduOnly && !isEduEmail(email)) {
       setEmailError('Only college .edu email addresses are accepted');
       return;
     }

@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView, Platform, Alert, ScrollView, StatusBar,
 } from 'react-native';
 import { useFeatureIsOn } from '@growthbook/growthbook-react';
+import { isEduEmail } from '../../utils/auth';
 import { api } from '../../api';
 import { colors, font, radius, spacing } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,7 +27,7 @@ export default function RegisterScreen({ navigation }: any) {
       Alert.alert('Missing fields', 'Please fill in all fields');
       return;
     }
-    if (eduOnly && !email.toLowerCase().includes('.edu')) {
+    if (eduOnly && !isEduEmail(email)) {
       setEmailError('Only college .edu email addresses are accepted');
       return;
     }
