@@ -26,7 +26,7 @@ export default function RegisterScreen({ navigation }: any) {
       Alert.alert('Missing fields', 'Please fill in all fields');
       return;
     }
-    if (eduOnly && !email.trim().toLowerCase().endsWith('.edu')) {
+    if (eduOnly && !email.toLowerCase().includes('.edu')) {
       setEmailError('Only college .edu email addresses are accepted');
       return;
     }

@@ -61,7 +61,7 @@ export default function LoginScreen({ navigation }: any) {
       Alert.alert('Missing fields', 'Please enter your email and password');
       return;
     }
-    if (eduOnly && !email.trim().toLowerCase().endsWith('.edu')) {
+    if (eduOnly && !email.toLowerCase().includes('.edu')) {
       setEmailError('Only college .edu email addresses are accepted');
       return;
     }
