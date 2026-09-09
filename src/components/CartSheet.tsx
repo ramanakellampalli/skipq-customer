@@ -13,6 +13,7 @@ import { getItemEmoji } from '../utils/foodEmoji';
 import { colors, font, radius, spacing } from '../theme';
 import { CartItem } from '../types';
 import { calcFees } from '../utils/pricing';
+import { toLocalTimestamp } from '../utils/time';
 
 const WINDOW_START_H = 10;
 const WINDOW_END_H   = 17;
@@ -95,7 +96,7 @@ export default function CartSheet({ visible, onClose, onOrderPlaced, vendorId, g
     try {
       setLoading(true);
       const pickupAt = isScheduled && selectedSlot
-        ? selectedSlot.toISOString().slice(0, 19)
+        ? toLocalTimestamp(selectedSlot)
         : undefined;
       const { data } = await api.student.placeOrder(
         vendorId,
